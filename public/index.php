@@ -2,10 +2,10 @@
 /**
  * Pentagon Collections — single front controller (see .htaccess: every
  * request that isn't a real file/directory is routed through this file).
- * All application code lives outside the web root, in /app.
+ * Application code lives outside the web root, in /app/collections_apps.
  */
 
-require dirname(__DIR__) . '/app/bootstrap.php';
+require dirname(__DIR__) . '/app/collections_apps/app/bootstrap.php';
 
 use App\Core\Router;
 use App\Controllers\StorefrontController;

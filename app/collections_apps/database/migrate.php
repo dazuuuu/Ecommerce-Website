@@ -1,8 +1,8 @@
 <?php
 /**
  * Migration runner.
- *   php database/migrate.php            Run all pending migrations
- *   php database/migrate.php --fresh    Drop all known tables, then run every migration
+ *   php app/collections_apps/database/migrate.php            Run all pending migrations
+ *   php app/collections_apps/database/migrate.php --fresh    Drop all known tables, then run every migration
  */
 
 require dirname(__DIR__) . '/vendor/autoload.php';

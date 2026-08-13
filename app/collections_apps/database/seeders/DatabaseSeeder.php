@@ -2,7 +2,7 @@
 /**
  * One-time/idempotent seed: categories, products, and the first admin account
  * (from ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD in .env).
- * Run: php database/seeders/DatabaseSeeder.php
+ * Run: php app/collections_apps/database/seeders/DatabaseSeeder.php
  */
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';

@@ -3,8 +3,8 @@
 namespace App\Core;
 
 /**
- * Loads .env (via vlucas/phpdotenv) once per request from the project root
- * (one level above public/), and exposes a global env() helper.
+ * Loads .env (via vlucas/phpdotenv) once per request from the private
+ * application bundle, and exposes a global env() helper.
  */
 class Env
 {

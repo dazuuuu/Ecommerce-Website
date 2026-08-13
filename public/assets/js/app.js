@@ -1,7 +1,7 @@
 /**
  * Pentagon Collections — vanilla JS behavior layer.
  * Replaces React's component state/rendering with plain DOM updates while
- * PHP (app/Views/storefront/*.php, rendered by StorefrontController) owns
+ * PHP (public/Views/storefront/*.php, rendered by StorefrontController) owns
  * the initial server-rendered markup.
  * Section comments below correspond 1:1 to the original src/components/*.tsx files.
  */
