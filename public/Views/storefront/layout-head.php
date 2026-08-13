@@ -24,5 +24,5 @@ $tagList = !empty($seo['tags']) ? array_filter(array_map('trim', explode(',', $s
   <link rel="stylesheet" href="<?= asset('assets/css/tailwind.css') ?>">
   <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>">
 </head>
-<body class="bg-[#faf9f6] text-[#1a1a1a] antialiased selection:bg-[#1a1a1a] selection:text-white">
-  <div id="app" class="min-h-screen flex flex-col bg-[#fdfbf7] text-[#0a0a0a] font-sans antialiased">
+<body class="bg-white text-[#1a1a1a] antialiased selection:bg-[#1a1a1a] selection:text-white">
+  <div id="app" class="min-h-screen flex flex-col bg-white text-[#0a0a0a] font-sans antialiased">

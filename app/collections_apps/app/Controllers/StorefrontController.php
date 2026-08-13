@@ -63,11 +63,7 @@ class StorefrontController
 
         View::render('storefront.layout-head', ['seo' => $seo]);
         View::render('storefront.header');
-        View::render('storefront.hero-banner');
         View::render('storefront.product-section', ['products' => $products, 'currency' => $currency]);
-        View::render('storefront.lookbook-section', ['lookbook' => $lookbook]);
-        View::render('storefront.reviews-section', ['reviews' => $reviews]);
-        View::render('storefront.newsletter');
         View::render('storefront.footer', ['currency' => $currency]);
         View::render('storefront.size-guide-modal');
         View::render('storefront.layout-foot', [
