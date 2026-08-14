@@ -19,7 +19,7 @@ use App\Controllers\Admin\OfferController;
 use App\Controllers\Admin\OrderController as AdminOrderController;
 use App\Controllers\Admin\SeoController;
 use App\Controllers\Admin\SettingsController;
-use App\Controllers\Admin\UpdateController;
+use App\Controllers\Admin\MigrationController;
 use App\Controllers\Account\AuthController as AccountAuthController;
 use App\Controllers\Account\OrderController as AccountOrderController;
 
@@ -83,9 +83,11 @@ $router->post('/admin/seo/{pageKey}', [SeoController::class, 'update']);
 $router->get('/admin/settings', [SettingsController::class, 'index']);
 $router->post('/admin/settings', [SettingsController::class, 'update']);
 
-// --- Admin: updates ---
-$router->get('/admin/updates', [UpdateController::class, 'index']);
-$router->post('/admin/updates/run', [UpdateController::class, 'run']);
+// --- Admin: migrations ---
+$router->get('/admin/migrations', [MigrationController::class, 'index']);
+$router->post('/admin/migrations/run', [MigrationController::class, 'run']);
+$router->get('/admin/updates', [MigrationController::class, 'index']);
+$router->post('/admin/updates/run', [MigrationController::class, 'run']);
 
 // --- Account ---
 $router->get('/account/login', [AccountAuthController::class, 'showLogin']);

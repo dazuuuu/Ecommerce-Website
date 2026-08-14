@@ -2,7 +2,7 @@
 /**
  * Shared admin shell (sidebar + topbar). Include after setting:
  *   $pageTitle  — shown in <title> and the topbar
- *   $activeNav  — one of: dashboard, products, product-form, categories, offers, orders, seo, settings
+ *   $activeNav  — one of: dashboard, products, product-form, categories, offers, orders, seo, settings, migrations
  * Requires App\Core\AdminSession::require() to have already run.
  */
 
@@ -18,6 +18,7 @@ $navItems = [
     ['id' => 'orders', 'href' => url('/admin/orders'), 'label' => 'Orders'],
     ['id' => 'seo', 'href' => url('/admin/seo'), 'label' => 'SEO'],
     ['id' => 'settings', 'href' => url('/admin/settings'), 'label' => 'Settings'],
+    ['id' => 'migrations', 'href' => url('/admin/migrations'), 'label' => 'Migrations'],
 ];
 $admin = AdminSession::current();
 $pendingMigrations = [];
@@ -26,6 +27,7 @@ try {
 } catch (Throwable $e) {
     $pendingMigrations = [];
 }
+$pendingMigrationCount = count($pendingMigrations);
 ?>
 <!doctype html>
 <html lang="en">
@@ -56,8 +58,11 @@ try {
 
       <nav class="p-3 space-y-1 text-xs font-semibold uppercase tracking-wider">
         <?php foreach ($navItems as $item): $active = ($activeNav ?? '') === $item['id']; ?>
-          <a href="<?= e($item['href']) ?>" class="admin-nav-link block px-3 py-2.5 rounded-lg transition-colors <?= $active ? 'admin-nav-active bg-black text-white font-bold' : 'text-neutral-800 hover:bg-black hover:text-white' ?>">
-            <?= e($item['label']) ?>
+          <a href="<?= e($item['href']) ?>" class="admin-nav-link flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-colors <?= $active ? 'admin-nav-active bg-black text-white font-bold' : 'text-neutral-800 hover:bg-black hover:text-white' ?>">
+            <span><?= e($item['label']) ?></span>
+            <?php if ($item['id'] === 'migrations' && $pendingMigrationCount): ?>
+              <span class="rounded-full px-1.5 py-0.5 text-[10px] leading-none <?= $active ? 'bg-white text-black' : 'bg-black text-white' ?>"><?= (int) $pendingMigrationCount ?></span>
+            <?php endif; ?>
           </a>
         <?php endforeach; ?>
       </nav>
@@ -77,14 +82,26 @@ try {
   <div class="flex-1 min-w-0">
     <header class="bg-white border-b border-neutral-200 px-6 py-4 sticky top-0 z-10 flex items-center justify-between gap-4">
       <h1 class="font-serif-heading text-xl font-bold text-[#0a0a0a]"><?= e($pageTitle ?? '') ?></h1>
-      <?php if ($pendingMigrations): ?>
-        <a href="<?= url('/admin/updates') ?>" class="inline-flex items-center gap-2 bg-black text-white text-[11px] font-bold px-3 py-2 rounded-lg uppercase tracking-widest hover:bg-neutral-900 transition-colors">
-          <span>Update</span>
-          <span class="bg-white text-black rounded-full px-1.5 py-0.5 text-[10px] leading-none"><?= count($pendingMigrations) ?></span>
+      <?php if ($pendingMigrationCount && ($activeNav ?? '') !== 'migrations'): ?>
+        <a href="<?= url('/admin/migrations') ?>" class="inline-flex items-center gap-2 bg-black text-white text-[11px] font-bold px-3 py-2 rounded-lg uppercase tracking-widest hover:bg-neutral-900 transition-colors">
+          <span>Migrate</span>
+          <span class="bg-white text-black rounded-full px-1.5 py-0.5 text-[10px] leading-none"><?= (int) $pendingMigrationCount ?></span>
         </a>
       <?php endif; ?>
     </header>
     <main class="p-6">
+      <?php if ($pendingMigrationCount && ($activeNav ?? '') !== 'migrations'): ?>
+        <div class="mb-5 flex flex-col gap-3 rounded-xl border border-neutral-300 bg-neutral-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm font-black text-black">New database updates are ready</p>
+            <p class="mt-1 text-sm font-medium text-neutral-700"><?= (int) $pendingMigrationCount ?> PHP migration<?= $pendingMigrationCount === 1 ? '' : 's' ?> waiting after the latest deploy.</p>
+          </div>
+          <form method="post" action="<?= url('/admin/migrations/run') ?>" onsubmit="return confirm('Run pending migrations now?');">
+            <?= csrfField() ?>
+            <button type="submit" class="rounded-lg bg-black px-5 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-neutral-900">Migrate</button>
+          </form>
+        </div>
+      <?php endif; ?>
       <?php if (!empty($_SESSION['flash_success'])): ?>
         <div class="mb-5 bg-neutral-50 border border-neutral-300 text-black text-sm font-semibold rounded-lg p-3">
           <?= e($_SESSION['flash_success']) ?>
