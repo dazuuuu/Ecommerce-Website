@@ -8,6 +8,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 require __DIR__ . '/Helpers/functions.php';
 
 App\Core\Env::load();
+App\Core\PathHandler::init();
 App\Core\Url::init();
 
 error_reporting(E_ALL);

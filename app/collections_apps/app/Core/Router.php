@@ -56,6 +56,10 @@ class Router
             }
         }
 
+        if (PathHandler::tryServe($path)) {
+            return;
+        }
+
         http_response_code(404);
         View::render('storefront.404');
     }
