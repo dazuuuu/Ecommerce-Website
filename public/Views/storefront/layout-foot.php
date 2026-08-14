@@ -15,7 +15,7 @@
         'lookbook' => $lookbook,
         'reviews' => $reviews,
         'currency' => $currency,
-        'baseUrl' => url('/'),
+        'baseUrl' => rtrim(\App\Core\PathHandler::appUrl(), '/') ?: url('/'),
         'focusProductCode' => $focus['product'] ?? null,
         'focusCategoryKey' => $focus['category'] ?? null,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>

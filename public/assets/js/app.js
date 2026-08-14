@@ -27,11 +27,35 @@
 
   // Product/category images are either an absolute seed URL or an uploaded
   // path relative to the app root (assets/uploads/products/xyz.jpg).
+  // Localhost / old-domain URLs are rewritten to DATA.baseUrl from paths.php.
   function imgUrl(path) {
     if (!path) return PLACEHOLDER_IMAGE;
     if (/^data:/i.test(path)) return path;
-    if (/^https?:\/\//i.test(path)) return path;
-    return siteUrl(path);
+
+    var raw = String(path);
+    if (/^https?:\/\//i.test(raw)) {
+      try {
+        var parsed = new URL(raw);
+        var host = (parsed.hostname || '').toLowerCase();
+        var ourHost = '';
+        try { ourHost = new URL((BASE_URL || window.location.origin), window.location.origin).hostname.toLowerCase(); } catch (err) { ourHost = window.location.hostname.toLowerCase(); }
+        var isLocal = host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+        var assetMatch = (parsed.pathname || '').replace(/\\/g, '/').match(/(?:^|\/)(assets\/.+)$/);
+        if (assetMatch && (isLocal || host === ourHost || host === '')) {
+          return siteUrl(assetMatch[1]);
+        }
+        if (!isLocal && host !== ourHost) {
+          return raw;
+        }
+      } catch (err) {
+        return raw;
+      }
+    }
+
+    var relative = raw.replace(/\\/g, '/').replace(/^https?:\/\/[^/]+/i, '');
+    var fromAssets = relative.match(/(?:^|\/)(assets\/.+)$/);
+    if (fromAssets) return siteUrl(fromAssets[1]);
+    return siteUrl(relative.replace(/^\//, ''));
   }
 
   var ICONS = {

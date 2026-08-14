@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Core\PathHandler;
+
 class UploadException extends \Exception {}
 
 /**
@@ -13,7 +15,7 @@ class UploadService
 {
     private static function uploadsRoot(): string
     {
-        return dirname(__DIR__, 4) . '/public/assets/uploads';
+        return PathHandler::publicRoot() . '/assets/uploads';
     }
 
     /** @param array $file One entry from $_FILES (e.g. $_FILES['image']) */
@@ -67,7 +69,7 @@ class UploadService
         if (!$relativePath || strpos($relativePath, 'assets/uploads/') !== 0) {
             return;
         }
-        $full = dirname(__DIR__, 4) . '/public/' . $relativePath;
+        $full = PathHandler::publicRoot() . '/' . $relativePath;
         if (is_file($full)) {
             @unlink($full);
         }

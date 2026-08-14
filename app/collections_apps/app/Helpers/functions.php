@@ -3,6 +3,7 @@
  * Global helper functions available to every controller and view.
  */
 
+use App\Core\PathHandler;
 use App\Core\Url;
 use App\Models\StoreSetting;
 
@@ -17,18 +18,12 @@ function asset(string $path): string
 }
 
 /**
- * Product/category images may be an absolute seed URL (https://images.unsplash.com/...)
- * or an uploaded path relative to public/ (assets/uploads/products/xyz.jpg).
+ * Product/category/logo images: seed CDN URLs stay as-is; uploaded files and
+ * leftover localhost paths are rewritten to the current site URL in config/paths.php.
  */
 function imageUrl(?string $path): string
 {
-    if (!$path) {
-        return '';
-    }
-    if (preg_match('#^(https?://|data:)#i', $path)) {
-        return $path;
-    }
-    return asset($path);
+    return PathHandler::image($path);
 }
 
 function formatPrice(float $amountInUsd, string $currency): string
