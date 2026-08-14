@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Core\View;
+use App\Core\Request;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\SeoMeta;
@@ -53,21 +56,70 @@ class StorefrontController
         $this->renderPage($seo, ['product' => null, 'category' => $key]);
     }
 
+    public function trackOrder(): void
+    {
+        $ref = strtoupper(trim((string) Request::input('order_ref', '')));
+        $order = null;
+        $items = [];
+        $searched = $ref !== '';
+
+        if ($searched) {
+            $order = Order::findByRef($ref);
+            if ($order) {
+                $items = OrderItem::forOrder((int) $order['id']);
+            }
+        }
+
+        $seo = SeoMeta::resolve(
+            'track-order',
+            'Track Your Order | Pentagon Collections',
+            'Track your Pentagon Collections order status using your order reference.'
+        );
+        $categories = Category::all();
+        $products = Product::all();
+        $occasions = Product::activeOccasions();
+
+        View::render('storefront.layout-head', ['seo' => $seo]);
+        View::render('storefront.header', ['categories' => $categories, 'occasions' => $occasions]);
+        View::render('storefront.track-order', [
+            'order' => $order,
+            'items' => $items,
+            'searched' => $searched,
+            'orderRef' => $ref,
+        ]);
+        View::render('storefront.footer', ['currency' => 'KSH', 'occasions' => $occasions]);
+        View::render('storefront.layout-foot', [
+            'products' => $products, 'categories' => $categories, 'occasions' => $occasions, 'lookbook' => [],
+            'reviews' => [], 'currency' => 'KSH', 'focus' => ['product' => null, 'category' => null],
+        ]);
+    }
+
     private function renderPage(array $seo, array $focus): void
     {
         $products = Product::all();
         $categories = Category::all();
+        $occasions = Product::activeOccasions();
+        $offers = array_values(array_filter($products, fn(array $product): bool => !empty($product['isSale'])));
+        if (!$offers) {
+            $offers = array_slice($products, 0, 4);
+        }
         $lookbook = $this->lookbook();
         $reviews = $this->reviews();
         $currency = 'KSH';
 
         View::render('storefront.layout-head', ['seo' => $seo]);
-        View::render('storefront.header');
+        View::render('storefront.header', ['categories' => $categories, 'occasions' => $occasions]);
+        View::render('storefront.offers-hero', [
+            'categories' => $categories,
+            'occasions' => $occasions,
+            'offers' => $offers,
+            'currency' => $currency,
+        ]);
         View::render('storefront.product-section', ['products' => $products, 'currency' => $currency]);
-        View::render('storefront.footer', ['currency' => $currency]);
+        View::render('storefront.footer', ['currency' => $currency, 'occasions' => $occasions]);
         View::render('storefront.size-guide-modal');
         View::render('storefront.layout-foot', [
-            'products' => $products, 'categories' => $categories, 'lookbook' => $lookbook,
+            'products' => $products, 'categories' => $categories, 'occasions' => $occasions, 'lookbook' => $lookbook,
             'reviews' => $reviews, 'currency' => $currency, 'focus' => $focus,
         ]);
     }

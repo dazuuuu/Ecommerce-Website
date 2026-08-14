@@ -23,7 +23,7 @@ class ProductController extends BaseAdminController
 
     public function create(): void
     {
-        $this->showForm(null, [], $this->emptyForm(), [], [['name' => '', 'hex' => '#0f2e1b', 'image' => null]]);
+        $this->showForm(null, [], $this->emptyForm(), []);
     }
 
     public function edit(string $id): void
@@ -33,19 +33,20 @@ class ProductController extends BaseAdminController
             redirect('/admin/products');
         }
         $form = [
-            'name' => $product['name'], 'subtitle' => $product['subtitle'], 'price' => $product['price'],
-            'original_price' => $product['original_price'], 'category_key' => $product['category_key'],
-            'sub_category' => $product['sub_category'], 'description' => $product['description'],
-            'fabric' => $product['fabric'], 'fit' => $product['fit'],
+            'name' => $product['name'] ?? '',
+            'base_price' => $product['original_price'] ?? $product['price'] ?? '',
+            'price' => $product['price'] ?? '',
+            'original_price' => $product['original_price'] ?? '', 'category_key' => $product['category_key'] ?? '',
+            'category_keys' => $this->selectedCategoryKeys($product),
+            'description' => $product['description'] ?? '',
             'sizes' => implode("\n", json_decode($product['sizes'] ?? '[]', true) ?: []),
-            'details' => implode("\n", json_decode($product['details'] ?? '[]', true) ?: []),
-            'is_new' => $product['is_new'], 'is_best_seller' => $product['is_best_seller'], 'is_sale' => $product['is_sale'],
-            'in_stock' => $product['in_stock'], 'featured_in_lookbook' => $product['featured_in_lookbook'],
-            'rating' => $product['rating'], 'review_count' => $product['review_count'],
+            'has_offer' => !empty($product['is_sale']) || !empty($product['original_price']) ? '1' : '',
+            'offer_type' => 'price',
+            'offer_value' => !empty($product['is_sale']) || !empty($product['original_price']) ? ($product['price'] ?? '') : '',
+            'colors' => json_decode($product['colors'] ?? '[]', true) ?: [],
         ];
         $images = json_decode($product['images'] ?? '[]', true) ?: [];
-        $colors = json_decode($product['colors'] ?? '[]', true) ?: [['name' => '', 'hex' => '#0f2e1b', 'image' => null]];
-        $this->showForm($product, [], $form, $images, $colors);
+        $this->showForm($product, [], $form, $images);
     }
 
     public function store(): void
@@ -85,10 +86,14 @@ class ProductController extends BaseAdminController
     private function emptyForm(): array
     {
         return [
-            'name' => '', 'subtitle' => '', 'price' => '', 'original_price' => '', 'category_key' => '',
-            'sub_category' => '', 'description' => '', 'fabric' => '', 'fit' => '', 'sizes' => '', 'details' => '',
-            'is_new' => 1, 'is_best_seller' => 0, 'is_sale' => 0, 'in_stock' => 1, 'featured_in_lookbook' => 0,
-            'rating' => 5.0, 'review_count' => 0,
+            'name' => '', 'price' => '', 'original_price' => '', 'category_key' => '',
+            'category_keys' => [],
+            'description' => '', 'sizes' => '',
+            'base_price' => '',
+            'has_offer' => '',
+            'offer_type' => 'price',
+            'offer_value' => '',
+            'colors' => [],
         ];
     }
 
@@ -100,27 +105,56 @@ class ProductController extends BaseAdminController
         }
 
         $form = [];
-        foreach (['name', 'subtitle', 'sub_category', 'description', 'fabric', 'fit'] as $f) {
+        foreach (['name', 'description'] as $f) {
             $form[$f] = trim((string) Request::post($f, ''));
         }
-        $form['price'] = (float) Request::post('price', 0);
-        $form['original_price'] = Request::post('original_price', '') !== '' ? (float) Request::post('original_price') : null;
-        $form['category_key'] = (string) Request::post('category_key', '');
+        $form['subtitle'] = '';
+        $form['sub_category'] = '';
+        $form['occasion'] = '';
+        $form['fabric'] = '';
+        $form['fit'] = '';
+        $form['base_price'] = (float) Request::post('base_price', Request::post('price', 0));
+        $form['has_offer'] = Request::post('has_offer') ? '1' : '';
+        $form['offer_type'] = Request::post('offer_type', 'price') === 'percentage' ? 'percentage' : 'price';
+        $form['offer_value'] = trim((string) Request::post('offer_value', ''));
+        $form['price'] = $form['base_price'];
+        $form['original_price'] = null;
+        $form['category_keys'] = $this->validCategoryKeys(Request::post('category_keys', []));
+        $form['category_key'] = $form['category_keys'][0] ?? '';
         $form['sizes'] = trim((string) Request::post('sizes', ''));
-        $form['details'] = trim((string) Request::post('details', ''));
-        $form['is_new'] = Request::post('is_new') ? 1 : 0;
-        $form['is_best_seller'] = Request::post('is_best_seller') ? 1 : 0;
-        $form['is_sale'] = Request::post('is_sale') ? 1 : 0;
-        $form['in_stock'] = Request::post('in_stock') ? 1 : 0;
-        $form['featured_in_lookbook'] = Request::post('featured_in_lookbook') ? 1 : 0;
-        $form['rating'] = (float) Request::post('rating', 5.0);
-        $form['review_count'] = (int) Request::post('review_count', 0);
+        $form['details'] = '';
+        $form['is_new'] = $product ? (int) ($product['is_new'] ?? 1) : 1;
+        $form['is_best_seller'] = $product ? (int) ($product['is_best_seller'] ?? 0) : 0;
+        $form['is_sale'] = $product ? (int) ($product['is_sale'] ?? 0) : 0;
+        $form['in_stock'] = $product ? (int) ($product['in_stock'] ?? 1) : 1;
+        $form['featured_in_lookbook'] = $product ? (int) ($product['featured_in_lookbook'] ?? 0) : 0;
+        $form['rating'] = $product ? (float) ($product['rating'] ?? 5.0) : 5.0;
+        $form['review_count'] = $product ? (int) ($product['review_count'] ?? 0) : 0;
 
         if ($form['name'] === '') $errors[] = 'Product name is required.';
-        if ($form['price'] <= 0) $errors[] = 'Price must be greater than 0.';
-        if ($form['category_key'] === '') $errors[] = 'Please choose a category.';
+        if ($form['base_price'] <= 0) $errors[] = 'Base price must be greater than 0.';
+        if (!$form['category_keys']) $errors[] = 'Select at least one category.';
+        if ($form['has_offer'] === '1') {
+            $offerValue = (float) $form['offer_value'];
+            if ($offerValue <= 0) {
+                $errors[] = 'Offer price or percentage must be greater than 0.';
+            } elseif ($form['offer_type'] === 'percentage') {
+                if ($offerValue >= 100) {
+                    $errors[] = 'Offer percentage must be less than 100.';
+                } else {
+                    $form['price'] = round($form['base_price'] * (1 - ($offerValue / 100)), 2);
+                    $form['original_price'] = $form['base_price'];
+                }
+            } elseif ($offerValue >= $form['base_price']) {
+                $errors[] = 'Offer price must be less than the base price.';
+            } else {
+                $form['price'] = $offerValue;
+                $form['original_price'] = $form['base_price'];
+            }
+        }
 
         $existingImages = $product ? (json_decode($product['images'] ?? '[]', true) ?: []) : [];
+        $originalCover = $existingImages[0] ?? null;
         $removeImages = Request::post('images_remove', []);
         $images = array_values(array_filter($existingImages, fn($img) => !in_array($img, $removeImages, true)));
         foreach ($removeImages as $rm) {
@@ -128,7 +162,22 @@ class ProductController extends BaseAdminController
                 UploadService::delete($rm);
             }
         }
-        $newImageFiles = $_FILES['images'] ?? null;
+        $coverFile = Request::file('cover_image');
+        if ($coverFile && ($coverFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            try {
+                $newCover = UploadService::store($coverFile, 'products');
+                if ($originalCover && in_array($originalCover, $images, true)) {
+                    UploadService::delete($originalCover);
+                    $images = array_values(array_filter($images, fn($img) => $img !== $originalCover));
+                }
+                array_unshift($images, $newCover);
+                $images = array_values(array_unique($images));
+            } catch (UploadException $e) {
+                $errors[] = 'Cover image upload: ' . $e->getMessage();
+            }
+        }
+
+        $newImageFiles = $_FILES['gallery_images'] ?? ($_FILES['images'] ?? null);
         if ($newImageFiles && !empty($newImageFiles['name'][0])) {
             foreach ($newImageFiles['name'] as $i => $name) {
                 if ($name === '') continue;
@@ -143,73 +192,109 @@ class ProductController extends BaseAdminController
             }
         }
         if (!$images) {
-            $errors[] = 'Add at least one product photo.';
-        }
-
-        $colors = [];
-        $colorsInput = Request::post('colors', []);
-        foreach ($colorsInput as $i => $c) {
-            $name = trim($c['name'] ?? '');
-            if ($name === '') continue;
-            $hex = preg_match('/^#[0-9a-fA-F]{6}$/', $c['hex'] ?? '') ? $c['hex'] : '#0f2e1b';
-            $colorImage = $c['existing_image'] ?: null;
-            if (!empty($c['remove_image']) && $colorImage) {
-                UploadService::delete($colorImage);
-                $colorImage = null;
-            }
-            $colorFile = $_FILES['colors']['name'][$i]['image_file'] ?? null;
-            if (!empty($colorFile)) {
-                try {
-                    $uploaded = UploadService::store([
-                        'name' => $_FILES['colors']['name'][$i]['image_file'], 'type' => $_FILES['colors']['type'][$i]['image_file'],
-                        'tmp_name' => $_FILES['colors']['tmp_name'][$i]['image_file'], 'error' => $_FILES['colors']['error'][$i]['image_file'],
-                        'size' => $_FILES['colors']['size'][$i]['image_file'],
-                    ], 'products');
-                    if ($colorImage) UploadService::delete($colorImage);
-                    $colorImage = $uploaded;
-                } catch (UploadException $e) {
-                    $errors[] = "Color \"{$name}\": " . $e->getMessage();
-                }
-            }
-            $colors[] = ['name' => $name, 'hex' => $hex, 'image' => $colorImage];
-        }
-        if (!$colors) {
-            $errors[] = 'Add at least one color option.';
+            $errors[] = 'Add a cover image.';
         }
 
         $sizes = array_values(array_filter(array_map('trim', explode("\n", $form['sizes']))));
-        $details = array_values(array_filter(array_map('trim', explode("\n", $form['details']))));
-        if (!$sizes) $errors[] = 'Add at least one size.';
+        $colors = $this->parseColors(Request::post('color_names', []), Request::post('color_hexes', []));
+        $form['colors'] = $colors;
 
         if (!$errors) {
             $data = [
-                'name' => $form['name'], 'subtitle' => $form['subtitle'] ?: null, 'price' => $form['price'],
-                'original_price' => $form['original_price'], 'category_key' => $form['category_key'],
-                'sub_category' => $form['sub_category'] ?: null, 'description' => $form['description'] ?: null,
-                'details' => json_encode($details, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-                'fabric' => $form['fabric'] ?: null, 'fit' => $form['fit'] ?: null,
+                'name' => $form['name'],
+                'subtitle' => null,
+                'price' => $form['price'],
+                'original_price' => $form['original_price'],
+                'category_key' => $form['category_key'],
+                'category_keys' => json_encode($form['category_keys'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'sub_category' => null,
+                'description' => $form['description'] ?: null,
                 'sizes' => json_encode($sizes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'colors' => json_encode($colors, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'images' => json_encode($images, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-                'is_new' => $form['is_new'], 'is_best_seller' => $form['is_best_seller'], 'is_sale' => $form['is_sale'],
-                'in_stock' => $form['in_stock'], 'featured_in_lookbook' => $form['featured_in_lookbook'],
-                'rating' => $form['rating'], 'review_count' => $form['review_count'],
+                'is_sale' => $form['has_offer'] === '1' ? 1 : 0,
             ];
 
-            if ($product) {
-                Product::update((int) $product['id'], $data);
-            } else {
-                Product::create($data);
+            try {
+                if ($product) {
+                    Product::update((int) $product['id'], $data);
+                } else {
+                    Product::create($data);
+                }
+            } catch (\Throwable $e) {
+                $errors[] = 'Product could not be saved. ' . $e->getMessage();
             }
 
-            flashSuccess($product ? 'Product updated.' : 'Product created.');
-            redirect('/admin/products');
+            if (!$errors) {
+                flashSuccess($product ? 'Product updated.' : 'Product created.');
+                redirect('/admin/products');
+            }
         }
 
-        $this->showForm($product, $errors, $form, $images, $colors ?: [['name' => '', 'hex' => '#0f2e1b', 'image' => null]]);
+        $this->showForm($product, $errors, $form, $images);
     }
 
-    private function showForm(?array $product, array $errors, array $form, array $images, array $colors): void
+    private function selectedCategoryKeys(?array $product): array
+    {
+        if (!$product) {
+            return [];
+        }
+
+        $keys = json_decode($product['category_keys'] ?? '[]', true);
+        if (!is_array($keys) || !$keys) {
+            $keys = !empty($product['category_key']) ? [(string) $product['category_key']] : [];
+        }
+
+        return $this->validCategoryKeys($keys);
+    }
+
+    private function validCategoryKeys($keys): array
+    {
+        if (!is_array($keys)) {
+            $keys = [$keys];
+        }
+
+        $valid = [];
+        foreach ($keys as $key) {
+            $key = (string) $key;
+            if ($key !== '' && Category::keyExists($key)) {
+                $valid[] = $key;
+            }
+        }
+
+        return array_values(array_unique($valid));
+    }
+
+    private function parseColors($names, $hexes): array
+    {
+        if (!is_array($names)) {
+            $names = [];
+        }
+        if (!is_array($hexes)) {
+            $hexes = [];
+        }
+
+        $colors = [];
+        foreach ($hexes as $i => $hex) {
+            $hex = strtolower(trim((string) $hex));
+            $name = trim((string) ($names[$i] ?? ''));
+            if ($hex === '' && $name === '') {
+                continue;
+            }
+            if (!preg_match('/^#[0-9a-f]{6}$/', $hex)) {
+                continue;
+            }
+            $colors[] = [
+                'name' => $name !== '' ? $name : strtoupper($hex),
+                'hex' => $hex,
+                'image' => null,
+            ];
+        }
+
+        return array_values($colors);
+    }
+
+    private function showForm(?array $product, array $errors, array $form, array $images): void
     {
         View::render('admin.products.form', [
             'pageTitle' => $product ? 'Edit Product' : 'Add Product',
@@ -218,7 +303,6 @@ class ProductController extends BaseAdminController
             'errors' => $errors,
             'form' => $form,
             'existingImages' => $images,
-            'existingColors' => $colors,
             'categories' => Category::allWithCounts(),
         ]);
     }

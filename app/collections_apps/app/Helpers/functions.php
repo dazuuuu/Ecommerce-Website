@@ -4,6 +4,7 @@
  */
 
 use App\Core\Url;
+use App\Models\StoreSetting;
 
 function url(string $path = '/'): string
 {
@@ -24,7 +25,7 @@ function imageUrl(?string $path): string
     if (!$path) {
         return '';
     }
-    if (preg_match('#^https?://#i', $path)) {
+    if (preg_match('#^(https?://|data:)#i', $path)) {
         return $path;
     }
     return asset($path);
@@ -40,9 +41,27 @@ function formatPrice(float $amountInUsd, string $currency): string
     return $symbol . number_format(round($amountInUsd * $rate));
 }
 
-function pentagonLogoSvg(string $class = 'w-4 h-4 text-amber-300'): string
+function pentagonLogoSvg(string $class = 'w-4 h-4 text-white'): string
 {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="' . $class . '"><polygon points="12,2 22,9 18,21 6,21 2,9" /></svg>';
+}
+
+function storeLogoPath(): ?string
+{
+    try {
+        return StoreSetting::get('store_logo');
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+function storeLogoHtml(string $imageClass, string $fallbackSvgClass = 'w-4 h-4 text-white'): string
+{
+    $logo = storeLogoPath();
+    if ($logo) {
+        return '<img src="' . e(imageUrl($logo)) . '" alt="Store logo" class="' . e($imageClass) . '" />';
+    }
+    return pentagonLogoSvg($fallbackSvgClass);
 }
 
 function e($str): string

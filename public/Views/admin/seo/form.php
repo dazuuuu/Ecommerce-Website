@@ -3,7 +3,7 @@
 require __DIR__ . '/../layout-header.php';
 ?>
 
-<a href="<?= url('/admin/seo') ?>" class="text-xs font-bold text-emerald-800 hover:underline">&larr; Back to SEO pages</a>
+<a href="<?= url('/admin/seo') ?>" class="text-xs font-bold text-black hover:underline">&larr; Back to SEO pages</a>
 
 <form method="post" action="<?= url('/admin/seo/' . rawurlencode($pageKey)) ?>" enctype="multipart/form-data" class="max-w-2xl bg-white border border-neutral-200 rounded-xl shadow-sm p-6 space-y-5 mt-4">
   <?= csrfField() ?>
@@ -19,23 +19,23 @@ require __DIR__ . '/../layout-header.php';
 
   <div>
     <label class="text-[11px] font-bold text-neutral-600 uppercase">Meta Title</label>
-    <input type="text" name="meta_title" value="<?= e($form['meta_title']) ?>" placeholder="<?= e($fallbackTitle) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-emerald-800" />
+    <input type="text" name="meta_title" value="<?= e($form['meta_title']) ?>" placeholder="<?= e($fallbackTitle) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black" />
     <p class="text-[11px] text-neutral-400 mt-1">Leave blank to use the auto-generated title above as a placeholder.</p>
   </div>
 
   <div>
     <label class="text-[11px] font-bold text-neutral-600 uppercase">Meta Description</label>
-    <textarea name="meta_description" rows="3" placeholder="<?= e($fallbackDescription) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-emerald-800"><?= e($form['meta_description']) ?></textarea>
+    <textarea name="meta_description" rows="3" placeholder="<?= e($fallbackDescription) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black"><?= e($form['meta_description']) ?></textarea>
   </div>
 
   <div>
     <label class="text-[11px] font-bold text-neutral-600 uppercase">Meta Keywords <span class="text-neutral-400 font-normal normal-case">(comma-separated)</span></label>
-    <input type="text" name="meta_keywords" value="<?= e($form['meta_keywords']) ?>" placeholder="luxury furniture, dining table, Nairobi" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-emerald-800" />
+    <input type="text" name="meta_keywords" value="<?= e($form['meta_keywords']) ?>" placeholder="luxury furniture, dining table, Nairobi" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black" />
   </div>
 
   <div>
     <label class="text-[11px] font-bold text-neutral-600 uppercase">Tags <span class="text-neutral-400 font-normal normal-case">(comma-separated)</span></label>
-    <input type="text" name="tags" value="<?= e($form['tags']) ?>" placeholder="furniture, gold, dining" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-emerald-800" />
+    <input type="text" name="tags" value="<?= e($form['tags']) ?>" placeholder="furniture, gold, dining" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black" />
   </div>
 
   <div>
@@ -48,7 +48,7 @@ require __DIR__ . '/../layout-header.php';
   </div>
 
   <div class="flex items-center gap-3 pt-3 border-t border-neutral-100">
-    <button type="submit" class="bg-[#0a0a0a] hover:bg-[#0d2a18] text-amber-300 text-xs font-bold px-6 py-3 rounded-lg uppercase tracking-widest transition-colors cursor-pointer border border-amber-400/30">Save SEO Details</button>
+    <button type="submit" class="bg-[#0a0a0a] hover:bg-black text-white text-xs font-bold px-6 py-3 rounded-lg uppercase tracking-widest transition-colors cursor-pointer border border-neutral-300">Save SEO Details</button>
     <a href="<?= url('/admin/seo') ?>" class="text-xs font-bold text-neutral-500 hover:text-neutral-800">Cancel</a>
   </div>
 </form>

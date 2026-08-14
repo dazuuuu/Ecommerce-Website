@@ -8,6 +8,7 @@
 require dirname(__DIR__) . '/app/collections_apps/app/bootstrap.php';
 
 use App\Core\Router;
+use App\Controllers\SetupController;
 use App\Controllers\StorefrontController;
 use App\Controllers\Api\OrderController as ApiOrderController;
 use App\Controllers\Admin\AuthController as AdminAuthController;
@@ -17,15 +18,23 @@ use App\Controllers\Admin\CategoryController;
 use App\Controllers\Admin\OfferController;
 use App\Controllers\Admin\OrderController as AdminOrderController;
 use App\Controllers\Admin\SeoController;
+use App\Controllers\Admin\SettingsController;
+use App\Controllers\Admin\UpdateController;
 use App\Controllers\Account\AuthController as AccountAuthController;
 use App\Controllers\Account\OrderController as AccountOrderController;
 
 $router = new Router();
 
+// --- First-run setup ---
+$router->get('/setup', [SetupController::class, 'index']);
+$router->post('/setup', [SetupController::class, 'store']);
+
 // --- Storefront ---
 $router->get('/', [StorefrontController::class, 'home']);
 $router->get('/product/{code}', [StorefrontController::class, 'product']);
 $router->get('/category/{key}', [StorefrontController::class, 'category']);
+$router->get('/track-order', [StorefrontController::class, 'trackOrder']);
+$router->post('/track-order', [StorefrontController::class, 'trackOrder']);
 
 // --- API ---
 $router->post('/api/place-order', [ApiOrderController::class, 'store']);
@@ -69,6 +78,14 @@ $router->post('/admin/orders/{id}/status', [AdminOrderController::class, 'update
 $router->get('/admin/seo', [SeoController::class, 'index']);
 $router->get('/admin/seo/{pageKey}/edit', [SeoController::class, 'edit']);
 $router->post('/admin/seo/{pageKey}', [SeoController::class, 'update']);
+
+// --- Admin: settings ---
+$router->get('/admin/settings', [SettingsController::class, 'index']);
+$router->post('/admin/settings', [SettingsController::class, 'update']);
+
+// --- Admin: updates ---
+$router->get('/admin/updates', [UpdateController::class, 'index']);
+$router->post('/admin/updates/run', [UpdateController::class, 'run']);
 
 // --- Account ---
 $router->get('/account/login', [AccountAuthController::class, 'showLogin']);

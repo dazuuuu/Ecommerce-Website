@@ -5,9 +5,9 @@ require __DIR__ . '/../layout-header.php';
 
 <div class="flex items-center justify-between mb-5 gap-3">
   <form method="get" action="<?= url('/admin/products') ?>" class="flex-1 max-w-xs">
-    <input type="text" name="q" value="<?= e($search) ?>" placeholder="Search products..." class="w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-800" />
+    <input type="text" name="q" value="<?= e($search) ?>" placeholder="Search products..." class="w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black" />
   </form>
-  <a href="<?= url('/admin/products/create') ?>" class="bg-[#0a0a0a] text-amber-300 text-xs font-bold px-4 py-2.5 rounded-lg uppercase tracking-widest hover:bg-black transition-colors border border-amber-400/30 whitespace-nowrap">+ Add Product</a>
+  <a href="<?= url('/admin/products/create') ?>" class="bg-[#0a0a0a] text-white text-xs font-bold px-4 py-2.5 rounded-lg uppercase tracking-widest hover:bg-black transition-colors border border-neutral-300 whitespace-nowrap">+ Add Product</a>
 </div>
 
 <div class="bg-white border border-neutral-200 rounded-xl shadow-sm overflow-hidden">
@@ -29,6 +29,7 @@ require __DIR__ . '/../layout-header.php';
       <?php foreach ($products as $p):
         $images = json_decode($p['images'] ?? '[]', true) ?: [];
         $colors = json_decode($p['colors'] ?? '[]', true) ?: [];
+        $categoryKeys = json_decode($p['category_keys'] ?? '[]', true) ?: [$p['category_key']];
       ?>
         <tr class="hover:bg-neutral-50">
           <td class="px-5 py-3">
@@ -47,7 +48,7 @@ require __DIR__ . '/../layout-header.php';
               <?php endforeach; ?>
             </div>
           </td>
-          <td class="px-5 py-3 text-neutral-600"><?= e($p['category_key']) ?></td>
+          <td class="px-5 py-3 text-neutral-600"><?= e(implode(', ', $categoryKeys)) ?></td>
           <td class="px-5 py-3">
             <span class="font-bold text-[#8b1c1c]"><?= e(formatPrice((float) $p['price'], 'KSH')) ?></span>
             <?php if ($p['original_price']): ?>
@@ -56,15 +57,15 @@ require __DIR__ . '/../layout-header.php';
           </td>
           <td class="px-5 py-3">
             <div class="flex flex-wrap gap-1">
-              <?php if ($p['is_new']): ?><span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold">NEW</span><?php endif; ?>
-              <?php if ($p['is_best_seller']): ?><span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold">BEST</span><?php endif; ?>
+              <?php if ($p['is_new']): ?><span class="px-1.5 py-0.5 rounded bg-neutral-100 text-black text-[9px] font-bold">NEW</span><?php endif; ?>
+              <?php if ($p['is_best_seller']): ?><span class="px-1.5 py-0.5 rounded bg-neutral-100 text-black text-[9px] font-bold">BEST</span><?php endif; ?>
               <?php if ($p['is_sale']): ?><span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold">SALE</span><?php endif; ?>
               <?php if (!$p['in_stock']): ?><span class="px-1.5 py-0.5 rounded bg-neutral-200 text-neutral-600 text-[9px] font-bold">OUT</span><?php endif; ?>
             </div>
           </td>
           <td class="px-5 py-3">
             <div class="flex items-center gap-3">
-              <a href="<?= url('/admin/products/' . (int) $p['id'] . '/edit') ?>" class="font-bold text-emerald-800 hover:underline">Edit</a>
+              <a href="<?= url('/admin/products/' . (int) $p['id'] . '/edit') ?>" class="font-bold text-black hover:underline">Edit</a>
               <form method="post" action="<?= url('/admin/products/' . (int) $p['id'] . '/delete') ?>" onsubmit="return confirm('Delete this product? This cannot be undone.');">
                 <?= csrfField() ?>
                 <button type="submit" class="font-bold text-rose-600 hover:underline cursor-pointer">Delete</button>

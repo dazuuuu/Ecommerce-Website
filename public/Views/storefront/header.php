@@ -1,17 +1,22 @@
 <?php
 /**
- * Mirrors src/components/Header.tsx
  * Interactivity (scroll shadow, mobile drawer, currency dropdown, active nav state,
  * cart/wishlist counts) is handled client-side in assets/js/app.js.
+ * Requires $categories, $occasions in scope.
  */
-$navLinks = [
+$categoryLinks = array_map(fn(array $category): array => [
+    'id' => $category['id'],
+    'label' => $category['name'],
+], $categories ?? []);
+$navLinks = array_merge([
     ['id' => 'all', 'label' => 'All Products'],
     ['id' => 'new', 'label' => 'New Arrivals'],
-    ['id' => 'accessories', 'label' => 'Furniture & Dining'],
-    ['id' => 'outerwear', 'label' => 'Outerwear'],
-    ['id' => 'dresses', 'label' => 'Dresses'],
-    ['id' => 'knitwear', 'label' => 'Knitwear'],
-];
+], $categoryLinks);
+$occasionLinks = array_map(fn(array $occasion): array => [
+    'id' => $occasion['id'],
+    'label' => $occasion['label'],
+], $occasions ?? []);
+$browseLinks = array_merge($navLinks, $occasionLinks);
 $currencyLabels = [
     'KSH' => 'Ksh (KSH)',
     'USD' => '$ (USD)',
@@ -23,7 +28,7 @@ $currencyLabels = [
   <div class="store-top-strip">
     <div class="store-nav-inner store-top-strip-inner">
       <span>(+254) 747900900</span>
-      <button id="top-track-order" class="store-track-btn" type="button">Track My Order</button>
+      <a id="top-track-order" class="store-track-btn" href="<?= url('/track-order') ?>">Track My Order</a>
     </div>
   </div>
 
@@ -41,14 +46,14 @@ $currencyLabels = [
       <!-- Center Brand Logo -->
       <div class="store-brand-wrap">
         <button data-select-category="all" class="store-brand nav-select">
-          <span class="store-brand-mark"><?= pentagonLogoSvg('w-4 h-4') ?></span>
+          <span class="store-brand-mark"><?= storeLogoHtml('w-full h-full object-contain', 'w-4 h-4') ?></span>
           <span class="store-brand-text">PENTAGON</span>
         </button>
       </div>
 
       <!-- Desktop Links -->
       <nav class="store-primary-links" id="desktop-nav-links">
-        <?php foreach ($navLinks as $link): ?>
+        <?php foreach (array_slice($browseLinks, 0, 6) as $link): ?>
           <button data-select-category="<?= e($link['id']) ?>" class="nav-select store-primary-link" data-nav-id="<?= e($link['id']) ?>">
             <?= e($link['label']) ?>
             <span class="nav-active-underline hidden"></span>
@@ -94,7 +99,7 @@ $currencyLabels = [
 
     <div class="store-category-row">
       <div class="store-nav-inner store-category-scroller" id="category-pills">
-        <?php foreach ($navLinks as $link): ?>
+        <?php foreach ($browseLinks as $link): ?>
           <button data-select-category="<?= e($link['id']) ?>" class="cat-pill store-category-link" data-cat="<?= e($link['id']) ?>">
             <?= e($link['label']) ?>
           </button>
@@ -111,7 +116,7 @@ $currencyLabels = [
         <div class="flex items-center justify-between pb-4 border-b border-neutral-200">
           <div class="flex items-center gap-2">
             <div class="w-7 h-7 bg-black text-white flex items-center justify-center rounded-md">
-              <?= pentagonLogoSvg('w-4 h-4 text-white') ?>
+              <?= storeLogoHtml('w-full h-full object-contain rounded-md', 'w-4 h-4 text-white') ?>
             </div>
             <span class="font-extrabold text-base tracking-widest text-black uppercase">PENTAGON</span>
           </div>
@@ -132,7 +137,7 @@ $currencyLabels = [
 
         <div class="py-5 space-y-1">
           <p class="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-2">Browse Categories</p>
-          <?php foreach ($navLinks as $link): ?>
+          <?php foreach ($browseLinks as $link): ?>
             <button data-select-category="<?= e($link['id']) ?>" class="nav-select-mobile block w-full text-left py-2.5 px-3 rounded-md text-xs tracking-wider uppercase font-semibold transition-all text-neutral-800 hover:bg-neutral-100" data-nav-id="<?= e($link['id']) ?>">
               <?= e($link['label']) ?>
             </button>

@@ -26,6 +26,13 @@ class AdminSession
         return false;
     }
 
+    public static function loginAdmin(int $id, string $email): void
+    {
+        session_regenerate_id(true);
+        $_SESSION['admin_id'] = $id;
+        $_SESSION['admin_email'] = $email;
+    }
+
     public static function logout(): void
     {
         $_SESSION = [];

@@ -16,31 +16,31 @@
 <body class="bg-[#0a0a0a] text-white antialiased min-h-screen flex items-center justify-center p-4">
   <div class="w-full max-w-sm">
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-12 h-12 bg-[#0d2a18] text-amber-300 rounded-xl border border-amber-400/40 mb-3">
-        <?= pentagonLogoSvg('w-6 h-6 text-amber-300') ?>
+      <div class="inline-flex items-center justify-center w-12 h-12 bg-black text-white rounded-xl border border-neutral-300 mb-3">
+        <?= storeLogoHtml('w-full h-full object-contain rounded-xl', 'w-6 h-6 text-white') ?>
       </div>
       <h1 class="font-serif-heading text-2xl font-bold tracking-widest uppercase">Pentagon Admin</h1>
-      <p class="text-xs text-amber-200/60 mt-1">Sign in to manage products, categories &amp; orders</p>
+      <p class="text-xs text-neutral-500 mt-1">Sign in to manage products, categories &amp; orders</p>
     </div>
 
-    <form method="post" action="<?= url('/admin/login') ?>" class="bg-[#0d2a18] border border-amber-500/20 rounded-xl p-6 space-y-4 shadow-2xl">
+    <form method="post" action="<?= url('/admin/login') ?>" class="bg-black border border-neutral-700 rounded-xl p-6 space-y-4 shadow-2xl">
       <?= csrfField() ?>
       <?php if ($error): ?>
         <div class="bg-rose-950 border border-rose-600/40 text-rose-300 text-xs font-semibold rounded-lg p-3"><?= e($error) ?></div>
       <?php endif; ?>
       <div>
-        <label class="text-[11px] font-bold text-amber-200/80 uppercase tracking-wider">Email</label>
-        <input type="email" name="email" required autofocus class="w-full mt-1 bg-[#0a0a0a] border border-amber-500/30 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-400" />
+        <label class="text-[11px] font-bold text-neutral-300 uppercase tracking-wider">Email</label>
+        <input type="email" name="email" required autofocus class="w-full mt-1 bg-[#0a0a0a] border border-neutral-700 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-white" />
       </div>
       <div>
-        <label class="text-[11px] font-bold text-amber-200/80 uppercase tracking-wider">Password</label>
-        <input type="password" name="password" required class="w-full mt-1 bg-[#0a0a0a] border border-amber-500/30 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-400" />
+        <label class="text-[11px] font-bold text-neutral-300 uppercase tracking-wider">Password</label>
+        <input type="password" name="password" required class="w-full mt-1 bg-[#0a0a0a] border border-neutral-700 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-white" />
       </div>
-      <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-black text-xs font-bold py-3 rounded-lg uppercase tracking-widest transition-colors cursor-pointer">Sign In</button>
+      <button type="submit" class="w-full bg-white hover:bg-neutral-100 text-black text-xs font-bold py-3 rounded-lg uppercase tracking-widest transition-colors cursor-pointer">Sign In</button>
     </form>
 
-    <p class="text-center text-[11px] text-amber-200/40 mt-6">
-      <a href="<?= url('/') ?>" class="hover:text-amber-300">&larr; Back to storefront</a>
+    <p class="text-center text-[11px] text-neutral-500 mt-6">
+      <a href="<?= url('/') ?>" class="hover:text-white">&larr; Back to storefront</a>
     </p>
   </div>
 </body>

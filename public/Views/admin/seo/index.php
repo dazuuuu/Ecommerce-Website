@@ -27,13 +27,13 @@ foreach ($pages as $page) {
             </td>
             <td class="px-5 py-3">
               <?php if ($page['hasCustomSeo']): ?>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800">Custom SEO Set</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-neutral-100 text-black">Custom SEO Set</span>
               <?php else: ?>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-neutral-100 text-neutral-500">Using Defaults</span>
               <?php endif; ?>
             </td>
             <td class="px-5 py-3 text-right">
-              <a href="<?= url('/admin/seo/' . rawurlencode($page['key']) . '/edit') ?>" class="font-bold text-emerald-800 hover:underline">Edit SEO</a>
+              <a href="<?= url('/admin/seo/' . rawurlencode($page['key']) . '/edit') ?>" class="font-bold text-black hover:underline">Edit SEO</a>
             </td>
           </tr>
         <?php endforeach; ?>

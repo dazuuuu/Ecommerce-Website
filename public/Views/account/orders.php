@@ -3,16 +3,16 @@
 require __DIR__ . '/layout-header.php';
 
 $statusStyles = [
-    'pending' => 'bg-amber-100 text-amber-800',
+    'pending' => 'bg-neutral-100 text-black',
     'processing' => 'bg-blue-100 text-blue-800',
-    'shipped' => 'bg-emerald-100 text-emerald-800',
-    'delivered' => 'bg-emerald-600 text-white',
+    'shipped' => 'bg-neutral-100 text-black',
+    'delivered' => 'bg-black text-white',
     'cancelled' => 'bg-rose-100 text-rose-700',
 ];
 ?>
 
 <div class="mb-8">
-  <span class="text-xs font-bold text-amber-700 uppercase tracking-widest block mb-1">My Account</span>
+  <span class="text-xs font-bold text-black uppercase tracking-widest block mb-1">My Account</span>
   <h1 class="font-serif-heading text-3xl font-bold text-[#0a0a0a]">Your Orders</h1>
   <p class="text-sm text-neutral-500 mt-2">
     Signed in as <strong class="text-neutral-800"><?= e($customer['email'] ?: $customer['phone']) ?></strong>
@@ -23,7 +23,7 @@ $statusStyles = [
   <div class="bg-white border border-neutral-200 rounded-xl shadow-sm p-10 text-center">
     <p class="font-serif-heading text-lg font-bold text-neutral-900 mb-2">No orders yet</p>
     <p class="text-sm text-neutral-500 mb-6">Once you place an order, it will show up here for tracking.</p>
-    <a href="<?= url('/') ?>" class="inline-block bg-[#0a0a0a] text-amber-300 text-xs font-bold px-6 py-3 rounded-lg uppercase tracking-widest hover:bg-black transition-colors border border-amber-400/30">Start Shopping</a>
+    <a href="<?= url('/') ?>" class="inline-block bg-[#0a0a0a] text-white text-xs font-bold px-6 py-3 rounded-lg uppercase tracking-widest hover:bg-black transition-colors border border-neutral-300">Start Shopping</a>
   </div>
 <?php endif; ?>
 

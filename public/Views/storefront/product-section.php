@@ -9,7 +9,10 @@ require_once __DIR__ . '/partials/product-card.php';
 ?>
 <section id="products-section" class="store-products-section">
   <div class="store-products-heading-row">
-    <h2 id="products-heading" class="store-products-heading">All Products</h2>
+    <div>
+      <h2 id="products-heading" class="store-products-heading">Recommended for You</h2>
+      <p id="products-count" class="store-products-count"><?= count($products) ?> items found</p>
+    </div>
     <select id="sort-select" class="store-sort-select" aria-label="Sort products">
       <option value="featured">Featured First</option>
       <option value="price-low">Price: Low to High</option>

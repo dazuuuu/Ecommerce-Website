@@ -8,9 +8,9 @@
 </head>
 <body class="bg-[#0a0a0a] text-white min-h-screen flex items-center justify-center text-center p-6">
   <div>
-    <h1 class="font-serif-heading text-5xl font-bold text-amber-300 mb-3">404</h1>
-    <p class="text-sm text-amber-100/70 mb-6">That page could not be found.</p>
-    <a href="<?= url('/') ?>" class="inline-block bg-amber-400 text-black text-xs font-bold px-6 py-3 rounded-lg uppercase tracking-widest">Back to Pentagon Collections</a>
+    <h1 class="font-serif-heading text-5xl font-bold text-white mb-3">404</h1>
+    <p class="text-sm text-neutral-300 mb-6">That page could not be found.</p>
+    <a href="<?= url('/') ?>" class="inline-block bg-white text-black text-xs font-bold px-6 py-3 rounded-lg uppercase tracking-widest">Back to Pentagon Collections</a>
   </div>
 </body>
 </html>

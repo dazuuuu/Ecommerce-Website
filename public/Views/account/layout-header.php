@@ -18,27 +18,27 @@ $loggedInCustomer = CustomerSession::current();
   <link rel="stylesheet" href="<?= asset('assets/css/tailwind.css') ?>">
   <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>">
 </head>
-<body class="bg-[#faf9f6] text-[#1a1a1a] antialiased min-h-screen flex flex-col">
+<body class="bg-white text-[#1a1a1a] antialiased min-h-screen flex flex-col">
 
-  <header class="w-full bg-[#0c2e1b] py-3 sm:py-4 border-b border-[#1b432a] text-white">
+  <header class="w-full bg-black py-3 sm:py-4 border-b border-neutral-800 text-white">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 flex items-center justify-between">
       <a href="<?= url('/') ?>" class="inline-flex items-center gap-2 group">
-        <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-[#0a0a0a] text-amber-300 rounded-md border border-amber-400/40 shrink-0">
-          <?= pentagonLogoSvg('w-4 h-4 text-amber-300') ?>
+        <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-[#0a0a0a] text-white rounded-md border border-neutral-300 shrink-0">
+          <?= pentagonLogoSvg('w-4 h-4 text-white') ?>
         </div>
         <div class="flex flex-col text-left leading-none">
           <span class="font-serif-heading text-base sm:text-lg font-extrabold tracking-[0.18em] text-white uppercase">PENTAGON</span>
-          <span class="text-[8px] tracking-[0.3em] text-amber-300/90 font-sans font-semibold uppercase mt-0.5">MY ACCOUNT</span>
+          <span class="text-[8px] tracking-[0.3em] text-neutral-300 font-sans font-semibold uppercase mt-0.5">MY ACCOUNT</span>
         </div>
       </a>
-      <nav class="flex items-center gap-4 text-xs font-bold uppercase tracking-wider text-amber-100/90">
+      <nav class="flex items-center gap-4 text-xs font-bold uppercase tracking-wider text-neutral-300">
         <?php if ($loggedInCustomer): ?>
-          <a href="<?= url('/account/orders') ?>" class="hover:text-amber-300">My Orders</a>
-          <a href="<?= url('/account/logout') ?>" class="hover:text-amber-300">Sign Out</a>
+          <a href="<?= url('/account/orders') ?>" class="hover:text-white">My Orders</a>
+          <a href="<?= url('/account/logout') ?>" class="hover:text-white">Sign Out</a>
         <?php else: ?>
-          <a href="<?= url('/account/login') ?>" class="hover:text-amber-300">Track an Order</a>
+          <a href="<?= url('/track-order') ?>" class="hover:text-white">Track an Order</a>
         <?php endif; ?>
-        <a href="<?= url('/') ?>" class="hover:text-amber-300">Shop &rarr;</a>
+        <a href="<?= url('/') ?>" class="hover:text-white">Shop &rarr;</a>
       </nav>
     </div>
   </header>

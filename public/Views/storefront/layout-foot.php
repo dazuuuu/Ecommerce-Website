@@ -1,5 +1,5 @@
 <?php
-/** Requires $products, $categories, $lookbook, $reviews, $currency, $focus in scope. */
+/** Requires $products, $categories, $occasions, $lookbook, $reviews, $currency, $focus in scope. */
 ?>
     <!-- Dynamic modals/drawers (QuickView, Cart, Wishlist, Search, Checkout) are
          injected here by assets/js/app.js, mirroring conditional rendering —
@@ -11,6 +11,7 @@
     <?= json_encode([
         'products' => $products,
         'categories' => $categories,
+        'occasions' => $occasions ?? [],
         'lookbook' => $lookbook,
         'reviews' => $reviews,
         'currency' => $currency,

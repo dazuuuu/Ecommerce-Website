@@ -2,7 +2,7 @@
 /** Requires $order, $items, $statuses in scope. */
 require __DIR__ . '/../layout-header.php';
 ?>
-<a href="<?= url('/admin/orders') ?>" class="text-xs font-bold text-emerald-800 hover:underline">&larr; Back to all orders</a>
+<a href="<?= url('/admin/orders') ?>" class="text-xs font-bold text-black hover:underline">&larr; Back to all orders</a>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
   <div class="lg:col-span-2 bg-white border border-neutral-200 rounded-xl shadow-sm p-6">
@@ -21,7 +21,7 @@ require __DIR__ . '/../layout-header.php';
     </div>
     <div class="mt-4 space-y-1.5 text-sm text-neutral-600">
       <div class="flex justify-between"><span>Subtotal</span><span class="font-semibold"><?= e(formatPrice((float) $order['subtotal'], $order['currency'])) ?></span></div>
-      <?php if ($order['discount'] > 0): ?><div class="flex justify-between text-emerald-800"><span>Discount</span><span>-<?= e(formatPrice((float) $order['discount'], $order['currency'])) ?></span></div><?php endif; ?>
+      <?php if ($order['discount'] > 0): ?><div class="flex justify-between text-black"><span>Discount</span><span>-<?= e(formatPrice((float) $order['discount'], $order['currency'])) ?></span></div><?php endif; ?>
       <div class="flex justify-between"><span>Shipping</span><span class="font-semibold"><?= $order['shipping'] > 0 ? e(formatPrice((float) $order['shipping'], $order['currency'])) : 'FREE' ?></span></div>
       <div class="flex justify-between text-base font-bold text-[#0a0a0a] pt-2 border-t border-neutral-200"><span>Total</span><span class="text-[#8b1c1c]"><?= e(formatPrice((float) $order['total'], $order['currency'])) ?></span></div>
     </div>

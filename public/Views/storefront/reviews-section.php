@@ -14,9 +14,9 @@ $starSvg = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><polygon point
 <section class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
   <div>
     <div class="text-center max-w-xl mx-auto space-y-2 mb-12">
-      <span class="text-xs font-bold text-amber-700 uppercase tracking-widest block">Client Testimonials</span>
+      <span class="text-xs font-bold text-neutral-700 uppercase tracking-widest block">Client Testimonials</span>
       <h2 class="font-serif-heading text-3xl sm:text-4xl font-bold tracking-tight text-[#1a1a1a]">PRAISED BY CONNOISSEURS</h2>
-      <div class="flex items-center justify-center space-x-1 text-amber-500 pt-1">
+      <div class="flex items-center justify-center space-x-1 text-neutral-500 pt-1">
         <?php for ($i = 0; $i < 5; $i++) echo $starSvg; ?>
         <span class="text-xs font-bold text-neutral-800 ml-2">4.92 / 5.0 Average Rating</span>
       </div>
@@ -27,7 +27,7 @@ $starSvg = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><polygon point
         <div class="bg-white p-6 rounded-xs border border-neutral-200 shadow-xs flex flex-col justify-between space-y-4">
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <div class="flex text-amber-400">
+              <div class="flex text-white">
                 <?php for ($i = 0; $i < $rev['rating']; $i++) echo str_replace('w-4 h-4', 'w-3.5 h-3.5', $starSvg); ?>
               </div>
               <span class="text-[10px] text-neutral-400 font-mono"><?= e($rev['date']) ?></span>
@@ -40,7 +40,7 @@ $starSvg = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><polygon point
             <div class="text-xs">
               <p class="font-bold text-neutral-900"><?= e($rev['author'] ?? '') ?></p>
               <p class="text-[10px] text-neutral-400 flex items-center gap-1">
-                <svg class="w-3 h-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
+                <svg class="w-3 h-3 text-neutral-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
                 Verified Buyer • <?= e($rev['location']) ?>
               </p>
             </div>
@@ -56,7 +56,7 @@ $starSvg = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><polygon point
         <span class="text-xs font-bold text-neutral-400 uppercase tracking-widest block mb-1">As Styled By You</span>
         <h3 class="font-serif-heading text-2xl sm:text-3xl font-bold text-[#1a1a1a]">#PENTAGONCOLLECTIONS ON INSTAGRAM</h3>
       </div>
-      <a href="https://instagram.com" target="_blank" rel="noreferrer" class="inline-flex items-center space-x-2 text-xs font-bold tracking-widest uppercase text-neutral-900 hover:text-amber-800 transition-colors mt-3 md:mt-0">
+      <a href="https://instagram.com" target="_blank" rel="noreferrer" class="inline-flex items-center space-x-2 text-xs font-bold tracking-widest uppercase text-neutral-900 hover:text-neutral-800 transition-colors mt-3 md:mt-0">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
         <span>FOLLOW @PENTAGON.COLLECTIONS</span>
       </a>

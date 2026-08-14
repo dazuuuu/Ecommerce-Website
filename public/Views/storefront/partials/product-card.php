@@ -10,8 +10,10 @@ function renderProductCard(array $product, string $currency, bool $isWishlisted)
 {
     $formattedPrice = formatPrice($product['price'], $currency);
     $formattedOriginal = isset($product['originalPrice']) ? formatPrice($product['originalPrice'], $currency) : null;
-    $img0 = e(imageUrl($product['images'][0]));
-    $img1 = e(imageUrl($product['images'][1] ?? $product['images'][0]));
+    $images = array_values(array_filter($product['images'] ?? []));
+    $fallbackImage = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20800%201000%22%3E%3Crect%20width%3D%22800%22%20height%3D%221000%22%20fill%3D%22%23f5f5f5%22/%3E%3Cpath%20d%3D%22M260%20470h280v60H260z%22%20fill%3D%22%23d4d4d4%22/%3E%3Cpath%20d%3D%22M310%20380h180v60H310z%22%20fill%3D%22%23e5e5e5%22/%3E%3Ctext%20x%3D%22400%22%20y%3D%22580%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2232%22%20fill%3D%22%23737373%22%20text-anchor%3D%22middle%22%3ENo%20image%3C/text%3E%3C/svg%3E';
+    $img0 = e(imageUrl($images[0] ?? $fallbackImage));
+    $img1 = e(imageUrl($images[1] ?? ($images[0] ?? $fallbackImage)));
     $wishClasses = $isWishlisted ? 'is-active' : '';
     $heartFill = $isWishlisted ? 'currentColor' : 'none';
 
@@ -54,13 +56,6 @@ function renderProductCard(array $product, string $currency, bool $isWishlisted)
             <?php endif; ?>
           </div>
 
-          <?php if (!empty($product['colors']) && is_array($product['colors'])): ?>
-            <div class="product-color-swatches" aria-label="Available colors">
-              <?php foreach (array_slice($product['colors'], 0, 6) as $color): ?>
-                <span title="<?= e($color['name'] ?? 'Color') ?>" style="background-color: <?= e($color['hex'] ?? '#111') ?>"></span>
-              <?php endforeach; ?>
-            </div>
-          <?php endif; ?>
         </div>
       </div>
 

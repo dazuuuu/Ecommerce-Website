@@ -15,7 +15,7 @@
         <img src="<?= e(imageUrl($item['product']['images'][0] ?? '')) ?>" alt="<?= e($item['product']['name'] ?? '') ?>" class="w-10 h-12 object-cover rounded-xs mr-2" />
         <div class="flex-1 min-w-0">
           <p class="font-serif-heading font-bold text-xs text-neutral-900 truncate"><?= e($item['product']['name'] ?? '') ?></p>
-          <p class="text-[10px] text-amber-800 font-bold mt-0.5">$<?= e($item['product']['price'] ?? '') ?></p>
+          <p class="text-[10px] text-neutral-800 font-bold mt-0.5">$<?= e($item['product']['price'] ?? '') ?></p>
           <span class="text-[9px] uppercase tracking-wider text-neutral-400 font-semibold block mt-0.5">Shop This Piece →</span>
         </div>
       </div>
@@ -24,6 +24,6 @@
 <?php endforeach; ?>
 
 <div class="absolute bottom-6 left-6 max-w-lg text-left">
-  <span class="text-xs font-mono text-amber-300 tracking-widest uppercase block mb-1"><?= e($activeLook['subtitle']) ?></span>
+  <span class="text-xs font-mono text-white tracking-widest uppercase block mb-1"><?= e($activeLook['subtitle']) ?></span>
   <h3 class="font-serif-heading text-2xl sm:text-3xl font-bold text-white"><?= e($activeLook['title']) ?></h3>
 </div>

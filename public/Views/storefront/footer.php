@@ -11,24 +11,19 @@
       <div>
         <h4>The Brand</h4>
         <span>Our Story</span>
-        <span>Join the Team</span>
-        <span>In the Press</span>
         <span>Get in Touch</span>
-      </div>
-      <div>
-        <h4>Learn More</h4>
-        <span>Style Blog</span>
-        <span>Email Sign-Up</span>
-        <span>Events</span>
         <span>FAQ</span>
         <span>Help</span>
       </div>
       <div>
         <h4>Occasions</h4>
-        <button data-select-category="accessories" class="nav-select">For Home</button>
-        <button data-select-category="outerwear" class="nav-select">For Business</button>
-        <button data-select-category="dresses" class="nav-select">For Events</button>
-        <button data-select-category="knitwear" class="nav-select">Retailers</button>
+        <?php if (!empty($occasions)): ?>
+          <?php foreach (array_slice($occasions, 0, 5) as $occasion): ?>
+            <button data-select-category="<?= e($occasion['id']) ?>" class="nav-select"><?= e($occasion['label']) ?></button>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <span>Add product occasions in admin</span>
+        <?php endif; ?>
       </div>
       <div>
         <h4>Connect</h4>
@@ -37,14 +32,6 @@
         <span>Facebook</span>
         <span>Instagram</span>
         <span>Tiktok</span>
-      </div>
-      <div>
-        <h4>Policies</h4>
-        <span>T&amp;Cs</span>
-        <span>Data</span>
-        <span>Cookies</span>
-        <span>Preferences</span>
-        <span>Support</span>
       </div>
     </div>
     <div class="store-footer-bottom">
