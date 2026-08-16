@@ -9,6 +9,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use App\Core\Env;
 use App\Core\Database;
+use App\Services\MigrationService;
 
 Env::load();
 $pdo = Database::connection();
@@ -24,30 +25,5 @@ if ($fresh) {
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
 }
 
-$pdo->exec(
-    'CREATE TABLE IF NOT EXISTS migrations (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        migration VARCHAR(255) NOT NULL UNIQUE,
-        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
-);
-
-$applied = $pdo->query('SELECT migration FROM migrations')->fetchAll(PDO::FETCH_COLUMN);
-
-$files = glob(__DIR__ . '/migrations/*.php');
-sort($files);
-
-$ran = 0;
-foreach ($files as $file) {
-    $name = basename($file, '.php');
-    if (in_array($name, $applied, true)) {
-        continue;
-    }
-    $migration = require $file;
-    echo "Migrating: {$name}\n";
-    $pdo->exec($migration['up']);
-    $pdo->prepare('INSERT INTO migrations (migration) VALUES (?)')->execute([$name]);
-    $ran++;
-}
-
+$ran = MigrationService::runPending();
 echo $ran ? "Ran {$ran} migration(s).\n" : "Nothing to migrate.\n";

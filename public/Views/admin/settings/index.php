@@ -64,6 +64,19 @@ $logo = $settings['store_logo'] ?? null;
       <a href="<?= url('/admin') ?>" class="text-xs font-black text-neutral-700 hover:text-black">Back to Dashboard</a>
     </div>
   </form>
+
+  <div class="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <p class="text-xs font-black uppercase tracking-widest text-neutral-600">System Updates</p>
+        <h2 class="mt-2 text-2xl font-black text-black">Database Migrations</h2>
+        <p class="mt-1 text-sm font-medium text-neutral-700">Run pending PHP migrations after a new deploy. Schema changes are not imported as SQL files.</p>
+      </div>
+      <a href="<?= url('/admin/migrations') ?>" class="shrink-0 rounded-lg bg-black px-6 py-3 text-center text-xs font-black uppercase tracking-widest text-white hover:bg-neutral-900">
+        Open Migrations
+      </a>
+    </div>
+  </div>
 </div>
 
 <?php require __DIR__ . '/../layout-footer.php'; ?>

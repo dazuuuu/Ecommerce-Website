@@ -9,7 +9,7 @@ class MigrationService
 {
     public static function pending(): array
     {
-        $applied = self::applied();
+        $applied = self::appliedNames();
         $pending = [];
 
         foreach (self::migrationFiles() as $file) {
@@ -22,10 +22,44 @@ class MigrationService
         return $pending;
     }
 
+    public static function appliedRecords(): array
+    {
+        $pdo = Database::connection();
+        self::ensureTable();
+
+        return $pdo->query(
+            'SELECT migration, applied_at FROM migrations ORDER BY id DESC'
+        )->fetchAll();
+    }
+
+    /**
+     * First-run only: create tables so setup/login can work.
+     * After the shop is installed, new PHP migrations wait for an admin click.
+     */
+    public static function bootstrapIfNeeded(): int
+    {
+        if (self::isInstalled()) {
+            return 0;
+        }
+
+        return self::runPending();
+    }
+
+    public static function isInstalled(): bool
+    {
+        try {
+            $pdo = Database::connection();
+            $stmt = $pdo->query("SHOW TABLES LIKE 'admins'");
+            return (bool) $stmt->fetchColumn();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     public static function runPending(): int
     {
         $pdo = Database::connection();
-        $applied = self::applied();
+        $applied = self::appliedNames();
 
         $ran = 0;
         foreach (self::migrationFiles() as $file) {
@@ -34,7 +68,10 @@ class MigrationService
                 continue;
             }
             $migration = require $file;
-            $pdo->exec($migration['up']);
+            if (!is_array($migration) || !array_key_exists('up', $migration)) {
+                throw new \RuntimeException("Migration {$name} must return an array with an 'up' key.");
+            }
+            self::executeUp($pdo, $migration['up'], $name);
             $pdo->prepare('INSERT INTO migrations (migration) VALUES (?)')->execute([$name]);
             $ran++;
         }
@@ -42,7 +79,21 @@ class MigrationService
         return $ran;
     }
 
-    private static function applied(): array
+    private static function executeUp(PDO $pdo, mixed $up, string $name): void
+    {
+        if (is_callable($up)) {
+            $up($pdo);
+            return;
+        }
+        if (is_string($up) && trim($up) !== '') {
+            $pdo->exec($up);
+            return;
+        }
+
+        throw new \RuntimeException("Migration {$name} is missing a valid up action.");
+    }
+
+    private static function appliedNames(): array
     {
         $pdo = Database::connection();
         self::ensureTable();

@@ -17,7 +17,7 @@ class AuthController
 
     public function showLogin(): void
     {
-        MigrationService::runPending();
+        MigrationService::bootstrapIfNeeded();
         if (Admin::count() === 0) {
             redirect('/setup');
         }
@@ -29,7 +29,7 @@ class AuthController
 
     public function login(): void
     {
-        MigrationService::runPending();
+        MigrationService::bootstrapIfNeeded();
         if (Admin::count() === 0) {
             redirect('/setup');
         }
