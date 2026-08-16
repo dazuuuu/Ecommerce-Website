@@ -2,7 +2,7 @@
 /**
  * Shared admin shell (sidebar + topbar). Include after setting:
  *   $pageTitle  — shown in <title> and the topbar
- *   $activeNav  — one of: dashboard, products, product-form, gallery, categories, offers, orders, seo, settings
+ *   $activeNav  — one of: dashboard, products, product-form, gallery, categories, offers, orders, seo, settings, updates
  * Requires App\Core\AdminSession::require() to have already run.
  */
 
@@ -79,12 +79,20 @@ try {
   <div class="flex-1 min-w-0">
     <header class="bg-white border-b border-neutral-200 px-6 py-4 sticky top-0 z-10 flex items-center justify-between gap-4">
       <h1 class="font-serif-heading text-xl font-bold text-[#0a0a0a]"><?= e($pageTitle ?? '') ?></h1>
-      <?php if ($pendingMigrations): ?>
-        <a href="<?= url('/admin/updates') ?>" class="inline-flex items-center gap-2 bg-black text-white text-[11px] font-bold px-3 py-2 rounded-lg uppercase tracking-widest hover:bg-neutral-900 transition-colors">
-          <span>Update</span>
-          <span class="bg-white text-black rounded-full px-1.5 py-0.5 text-[10px] leading-none"><?= count($pendingMigrations) ?></span>
+      <div class="flex items-center gap-2">
+        <a href="<?= url('/admin/updates') ?>" class="inline-flex items-center gap-2 border border-black bg-white text-black text-[11px] font-bold px-3 py-2 rounded-lg uppercase tracking-widest hover:bg-neutral-100 transition-colors">
+          Updates
         </a>
-      <?php endif; ?>
+        <?php if ($pendingMigrations): ?>
+          <form method="post" action="<?= url('/admin/updates/run') ?>" onsubmit="return confirm('Run all pending updates now?');">
+            <?= csrfField() ?>
+            <button type="submit" class="inline-flex items-center gap-2 bg-yellow-400 text-black border border-black text-[11px] font-black px-3 py-2 rounded-lg uppercase tracking-widest hover:bg-yellow-300 transition-colors cursor-pointer">
+              <span>Run Updates</span>
+              <span class="bg-black text-yellow-300 rounded-full px-1.5 py-0.5 text-[10px] leading-none"><?= count($pendingMigrations) ?></span>
+            </button>
+          </form>
+        <?php endif; ?>
+      </div>
     </header>
     <main class="p-6">
       <?php if (!empty($_SESSION['flash_success'])): ?>

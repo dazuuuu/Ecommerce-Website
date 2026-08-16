@@ -29,24 +29,24 @@ function imageUrl(?string $path): string
 function availableCurrencies(): array
 {
     return [
-        'KSH' => ['label' => 'Ksh (KSH)', 'symbol' => 'Ksh ', 'rate' => 1, 'decimals' => 0],
-        'USD' => ['label' => '$ (USD)', 'symbol' => '$', 'rate' => 0.00772, 'decimals' => 2],
-        'EUR' => ['label' => '€ (EUR)', 'symbol' => '€', 'rate' => 0.00679, 'decimals' => 2],
-        'GBP' => ['label' => '£ (GBP)', 'symbol' => '£', 'rate' => 0.00579, 'decimals' => 2],
-        'JPY' => ['label' => '¥ (JPY)', 'symbol' => '¥', 'rate' => 1.265, 'decimals' => 0],
-        'TZS' => ['label' => 'TSh (TZS)', 'symbol' => 'TSh ', 'rate' => 20.35, 'decimals' => 0],
-        'UGX' => ['label' => 'USh (UGX)', 'symbol' => 'USh ', 'rate' => 29.13, 'decimals' => 0],
-        'ZAR' => ['label' => 'R (ZAR)', 'symbol' => 'R', 'rate' => 0.12976, 'decimals' => 2],
-        'CAD' => ['label' => 'C$ (CAD)', 'symbol' => 'C$', 'rate' => 0.01088, 'decimals' => 2],
-        'AUD' => ['label' => 'A$ (AUD)', 'symbol' => 'A$', 'rate' => 0.01105, 'decimals' => 2],
+        'USD' => ['label' => '$ (USD)', 'symbol' => '$', 'rate' => 1, 'decimals' => 2],
+        'KSH' => ['label' => 'Ksh (KSH)', 'symbol' => 'Ksh ', 'rate' => 129.53, 'decimals' => 0],
+        'TZS' => ['label' => 'TSh (TZS)', 'symbol' => 'TSh ', 'rate' => 2636.01, 'decimals' => 0],
+        'UGX' => ['label' => 'USh (UGX)', 'symbol' => 'USh ', 'rate' => 3772.02, 'decimals' => 0],
+        'EUR' => ['label' => '€ (EUR)', 'symbol' => '€', 'rate' => 0.88, 'decimals' => 2],
+        'GBP' => ['label' => '£ (GBP)', 'symbol' => '£', 'rate' => 0.75, 'decimals' => 2],
+        'JPY' => ['label' => '¥ (JPY)', 'symbol' => '¥', 'rate' => 163.86, 'decimals' => 0],
+        'ZAR' => ['label' => 'R (ZAR)', 'symbol' => 'R', 'rate' => 16.81, 'decimals' => 2],
+        'CAD' => ['label' => 'C$ (CAD)', 'symbol' => 'C$', 'rate' => 1.41, 'decimals' => 2],
+        'AUD' => ['label' => 'A$ (AUD)', 'symbol' => 'A$', 'rate' => 1.43, 'decimals' => 2],
     ];
 }
 
-function formatPrice(float $amountInKsh, string $currency): string
+function formatPrice(float $amountInUsd, string $currency): string
 {
     $currencies = availableCurrencies();
-    $config = $currencies[$currency] ?? $currencies['KSH'];
-    $converted = $amountInKsh * $config['rate'];
+    $config = $currencies[$currency] ?? $currencies['USD'];
+    $converted = $amountInUsd * $config['rate'];
 
     return $config['symbol'] . number_format($converted, $config['decimals']);
 }

@@ -45,7 +45,7 @@ $isNewArrival = !empty($form['is_new']);
         <p class="text-[11px] text-neutral-400 mt-1">Select one or more categories. The first selected category is used as the primary category.</p>
       </div>
       <div>
-        <label class="text-[11px] font-bold text-neutral-600 uppercase">Base Price (KSh)</label>
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">Base Price (USD)</label>
         <input type="number" step="0.01" min="0.01" name="base_price" required value="<?= e($form['base_price'] ?? $form['price']) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black" />
       </div>
       <div>

@@ -10,7 +10,7 @@ $card1Items = [
         'badgeColor' => 'bg-black text-white border-neutral-400/20',
         'name' => 'Kenya Flag Map Graphic Tee',
         'description' => '100% combed ringspun cotton with authentic Kenyan map outline print.',
-        'price' => 'Ksh 2,000',
+        'priceUsd' => 15.44,
         'image' => 'https://i.pinimg.com/736x/42/ca/e8/42cae8157184ad897c03ab44f65b646d.jpg',
     ],
     [
@@ -18,7 +18,7 @@ $card1Items = [
         'badgeColor' => 'bg-neutral-900 text-neutral-200 border-neutral-500/30',
         'name' => 'Kenyan Heritage Shield Emblem Tee',
         'description' => 'Premium luxury cotton t-shirt with handcrafted Kenyan shield crest.',
-        'price' => 'Ksh 2,500',
+        'priceUsd' => 19.30,
         'image' => 'https://i.pinimg.com/736x/15/d0/cc/15d0cc250871a0c23878f9c62750786c.jpg',
     ],
 ];
@@ -28,7 +28,7 @@ $card2Items = [
         'badgeColor' => 'bg-white text-black border-neutral-300',
         'name' => 'Traditional Maasai Shuka Blanket',
         'description' => 'Handcrafted acrylic tartan plaid fabric wraps in vibrant Kenyan colorways.',
-        'price' => 'Ksh 3,000',
+        'priceUsd' => 23.16,
         'image' => 'https://i.pinimg.com/736x/64/17/2c/64172c5b9151cb1098312954e00fcd17.jpg',
     ],
     [
@@ -36,7 +36,7 @@ $card2Items = [
         'badgeColor' => 'bg-black text-white border-neutral-400/20',
         'name' => 'Emerald & Gold Kenya Silk Wrap',
         'description' => 'Hand-dyed luxury Kenyan silk shawl with rich heritage patterns.',
-        'price' => 'Ksh 4,500',
+        'priceUsd' => 34.74,
         'image' => 'https://i.pinimg.com/736x/43/0f/2e/430f2e3534c2538bf36a5127d9bd87db.jpg',
     ],
 ];

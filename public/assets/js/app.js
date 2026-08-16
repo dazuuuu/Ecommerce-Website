@@ -93,24 +93,31 @@
   }
 
   var CURRENCIES = DATA.currencies || {
-    KSH: { symbol: 'Ksh ', rate: 1, decimals: 0 },
-    USD: { symbol: '$', rate: 0.00772, decimals: 2 },
-    EUR: { symbol: '€', rate: 0.00679, decimals: 2 },
-    GBP: { symbol: '£', rate: 0.00579, decimals: 2 },
-    JPY: { symbol: '¥', rate: 1.265, decimals: 0 },
-    TZS: { symbol: 'TSh ', rate: 20.35, decimals: 0 },
-    UGX: { symbol: 'USh ', rate: 29.13, decimals: 0 },
-    ZAR: { symbol: 'R', rate: 0.12976, decimals: 2 },
-    CAD: { symbol: 'C$', rate: 0.01088, decimals: 2 },
-    AUD: { symbol: 'A$', rate: 0.01105, decimals: 2 },
+    USD: { symbol: '$', rate: 1, decimals: 2 },
+    KSH: { symbol: 'Ksh ', rate: 129.53, decimals: 0 },
+    TZS: { symbol: 'TSh ', rate: 2636.01, decimals: 0 },
+    UGX: { symbol: 'USh ', rate: 3772.02, decimals: 0 },
+    EUR: { symbol: '€', rate: 0.88, decimals: 2 },
+    GBP: { symbol: '£', rate: 0.75, decimals: 2 },
+    JPY: { symbol: '¥', rate: 163.86, decimals: 0 },
+    ZAR: { symbol: 'R', rate: 16.81, decimals: 2 },
+    CAD: { symbol: 'C$', rate: 1.41, decimals: 2 },
+    AUD: { symbol: 'A$', rate: 1.43, decimals: 2 },
   };
 
-  function formatPrice(amountKsh, currency) {
-    var config = CURRENCIES[currency] || CURRENCIES.KSH;
-    var value = amountKsh * config.rate;
+  function formatPrice(amountUsd, currency) {
+    var config = CURRENCIES[currency] || CURRENCIES.USD;
+    var value = amountUsd * config.rate;
     return config.symbol + value.toLocaleString('en-US', {
       minimumFractionDigits: config.decimals,
       maximumFractionDigits: config.decimals,
+    });
+  }
+
+  function renderStaticCurrencyPrices() {
+    document.querySelectorAll('[data-price-usd]').forEach(function (el) {
+      var amount = parseFloat(el.getAttribute('data-price-usd'));
+      if (!Number.isNaN(amount)) el.textContent = formatPrice(amount, state.currency);
     });
   }
 
@@ -125,7 +132,7 @@
   var state = {
     currentCategory: 'all',
     sortBy: 'featured',
-    currency: CURRENCIES[DATA.currency] ? DATA.currency : 'KSH',
+    currency: CURRENCIES[localStorage.getItem('pentagonCurrency')] ? localStorage.getItem('pentagonCurrency') : (CURRENCIES[DATA.currency] ? DATA.currency : 'KSH'),
     cart: [], // { productId, selectedColor:{name,hex}, selectedSize, quantity }
     wishlist: [], // array of productId
     appliedDiscountPercent: 0,
@@ -133,6 +140,7 @@
   };
 
   var openModalStack = [];
+  var heroRenderers = [];
 
   function trapEscape() {
     document.addEventListener('keydown', function (e) {
@@ -226,14 +234,20 @@
       var active = btn.getAttribute('data-select-currency') === state.currency;
       btn.classList.toggle('is-active', active);
     });
+    document.querySelectorAll('[data-currency-select]').forEach(function (select) {
+      select.value = state.currency;
+    });
   }
 
   function setCurrency(c) {
     if (!CURRENCIES[c]) c = 'KSH';
     state.currency = c;
-    updateHeaderUI();
+    localStorage.setItem('pentagonCurrency', c);
+    heroRenderers.forEach(function (render) { render(); });
     renderProductsSection();
+    renderStaticCurrencyPrices();
     refreshOpenModals();
+    updateHeaderUI();
   }
 
   // ---------------------------------------------------------------------
@@ -276,7 +290,7 @@
       '<h3 class="font-serif-heading font-bold text-xs sm:text-base text-neutral-900 leading-tight truncate group-hover:text-neutral-800 transition-colors">' + esc(item.name) + '</h3>' +
       '<p class="text-[10px] sm:text-xs text-neutral-500 mt-1 line-clamp-2">' + esc(item.description) + '</p>' +
       '<div class="mt-2 sm:mt-3 flex items-center justify-between">' +
-      '<span class="text-xs sm:text-base font-black text-[#8b1c1c]">' + esc(item.price) + '</span>' +
+      '<span class="text-xs sm:text-base font-black text-[#8b1c1c]">' + esc(formatPrice(item.priceUsd || 0, state.currency)) + '</span>' +
       '<span class="text-[10px] sm:text-xs font-bold text-neutral-900 underline group-hover:text-neutral-800 flex items-center gap-1">Shop ' + icon('arrowRight', 'w-3 h-3 text-neutral-700') + '</span>' +
       '</div></div>'
     );
@@ -306,6 +320,7 @@
       });
     }
     render();
+    heroRenderers.push(render);
     setInterval(function () {
       index = (index + 1) % items.length;
       render();
@@ -531,6 +546,7 @@
       state.sortBy = e.target.value;
       renderProductsSection();
     });
+    renderProductsSection();
     attachProductCardHoverEffects(document.getElementById('product-grid'));
   }
 
@@ -575,7 +591,7 @@
     renderCartDrawer();
   }
 
-  function cartSubtotalKsh() {
+  function cartSubtotalUsd() {
     return state.cart.reduce(function (sum, item) { return sum + findProduct(item.productId).price * item.quantity; }, 0);
   }
 
@@ -593,7 +609,7 @@
     var root = document.getElementById('modal-cart');
     if (!root) return;
     var items = state.cart;
-    var rawSubtotal = cartSubtotalKsh();
+    var rawSubtotal = cartSubtotalUsd();
     var discountAmount = Math.round(rawSubtotal * (cartUiState.discountPercent / 100));
     var finalTotal = rawSubtotal - discountAmount;
     var freeShippingThreshold = 100;
@@ -992,7 +1008,7 @@
   }
 
   function checkoutTotals() {
-    var rawSubtotal = cartSubtotalKsh();
+    var rawSubtotal = cartSubtotalUsd();
     var discountAmount = Math.round(rawSubtotal * (state.appliedDiscountPercent / 100));
     var shipping = rawSubtotal >= 100 ? 0 : 15;
     var total = rawSubtotal - discountAmount + shipping;
@@ -1348,6 +1364,12 @@
       if (e.target.closest('#footer-open-size-guide')) { openSizeGuide(); return; }
       if (e.target.closest('#footer-open-wishlist')) { openWishlistDrawer(); return; }
     });
+
+    document.addEventListener('change', function (e) {
+      if (e.target.matches('[data-currency-select]')) {
+        setCurrency(e.target.value);
+      }
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -1363,6 +1385,7 @@
     if (document.getElementById('newsletter-form')) initNewsletter();
     initSizeGuide();
     initGlobalDelegation();
+    renderStaticCurrencyPrices();
     trapEscape();
   });
 })();

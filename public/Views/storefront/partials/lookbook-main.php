@@ -15,7 +15,7 @@
         <img src="<?= e(imageUrl($item['product']['images'][0] ?? '')) ?>" alt="<?= e($item['product']['name'] ?? '') ?>" class="w-10 h-12 object-cover rounded-xs mr-2" />
         <div class="flex-1 min-w-0">
           <p class="font-serif-heading font-bold text-xs text-neutral-900 truncate"><?= e($item['product']['name'] ?? '') ?></p>
-          <p class="text-[10px] text-neutral-800 font-bold mt-0.5"><?= e(formatPrice((float) ($item['product']['price'] ?? 0), $currency)) ?></p>
+          <p class="text-[10px] text-neutral-800 font-bold mt-0.5" data-price-usd="<?= e((string) (float) ($item['product']['price'] ?? 0)) ?>"><?= e(formatPrice((float) ($item['product']['price'] ?? 0), $currency)) ?></p>
           <span class="text-[9px] uppercase tracking-wider text-neutral-400 font-semibold block mt-0.5">Shop This Piece →</span>
         </div>
       </div>

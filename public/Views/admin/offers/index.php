@@ -13,8 +13,8 @@ require __DIR__ . '/../layout-header.php';
     <thead class="bg-neutral-100 text-black uppercase tracking-wider text-[11px]">
       <tr>
         <th class="px-5 py-3">Product</th>
-        <th class="px-5 py-3">Offer Price</th>
-        <th class="px-5 py-3">Original Price</th>
+        <th class="px-5 py-3">Offer Price (USD)</th>
+        <th class="px-5 py-3">Original Price (USD)</th>
         <th class="px-5 py-3">Offer Image</th>
         <th class="px-5 py-3">Ends At</th>
         <th class="px-5 py-3">Actions</th>

@@ -50,9 +50,9 @@ function renderProductCard(array $product, string $currency, bool $isWishlisted)
           </div>
 
           <div class="product-card-price-row">
-            <span class="product-card-price"><?= e($formattedPrice) ?></span>
+            <span class="product-card-price" data-price-usd="<?= e((string) (float) $product['price']) ?>"><?= e($formattedPrice) ?></span>
             <?php if ($formattedOriginal): ?>
-              <span class="product-card-original-price"><?= e($formattedOriginal) ?></span>
+              <span class="product-card-original-price" data-price-usd="<?= e((string) (float) $product['originalPrice']) ?>"><?= e($formattedOriginal) ?></span>
             <?php endif; ?>
           </div>
 

@@ -60,7 +60,7 @@ class MailerService
             $mail->isHTML(true);
             $mail->Subject = 'Your Pentagon Collections order ' . $order['order_ref'] . ' is confirmed';
             $mail->Body = self::orderConfirmationHtml($order, $items);
-            $mail->AltBody = 'Thank you for your order ' . $order['order_ref'] . '. Total: ' . $order['total'] . ' ' . $order['currency'] . '.';
+            $mail->AltBody = 'Thank you for your order ' . $order['order_ref'] . '. Total: ' . formatPrice((float) $order['total'], $order['currency']) . '.';
             $mail->send();
         } catch (PHPMailerException $e) {
             throw new MailerException('Could not send order confirmation: ' . $mail->ErrorInfo);
@@ -97,7 +97,7 @@ class MailerService
         foreach ($items as $item) {
             $rows .= '<tr>
               <td style="padding:8px 0;border-bottom:1px solid #eee;font-size:12px;color:#333;">' . htmlspecialchars($item['product_name']) . ' &times; ' . (int) $item['quantity'] . '</td>
-              <td style="padding:8px 0;border-bottom:1px solid #eee;font-size:12px;color:#8b1c1c;text-align:right;font-weight:bold;">' . htmlspecialchars($item['currency']) . ' ' . number_format($item['unit_price'] * $item['quantity']) . '</td>
+              <td style="padding:8px 0;border-bottom:1px solid #eee;font-size:12px;color:#8b1c1c;text-align:right;font-weight:bold;">' . htmlspecialchars(formatPrice((float) $item['unit_price'] * (int) $item['quantity'], $item['currency'])) . '</td>
             </tr>';
         }
         return '
@@ -111,7 +111,7 @@ class MailerService
               <p style="font-size:13px;color:#555;line-height:1.5;margin:0 0 16px;">Order <strong>' . htmlspecialchars($order['order_ref']) . '</strong> has been received and is being prepared.</p>
               <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">' . $rows . '</table>
               <table style="width:100%;font-size:13px;color:#333;">
-                <tr><td>Total Paid</td><td style="text-align:right;font-weight:bold;color:#8b1c1c;">' . htmlspecialchars($order['currency']) . ' ' . number_format($order['total']) . '</td></tr>
+                <tr><td>Total Paid</td><td style="text-align:right;font-weight:bold;color:#8b1c1c;">' . htmlspecialchars(formatPrice((float) $order['total'], $order['currency'])) . '</td></tr>
               </table>
               <p style="font-size:12px;color:#888;margin-top:20px;">Track this order any time by signing in with this email at our order tracking page.</p>
             </div>

@@ -157,6 +157,11 @@ h1, h2, h3, h4, .font-serif-heading {
   justify-content: flex-end;
 }
 
+.store-currency-desktop {
+  position: relative;
+  display: none;
+}
+
 .store-icon-btn {
   position: relative;
   display: inline-flex;
@@ -259,6 +264,12 @@ h1, h2, h3, h4, .font-serif-heading {
 .nav-select-mobile.is-active {
   background: #000;
   color: #fff;
+}
+
+@media (min-width: 641px) {
+  .store-currency-desktop {
+    display: block;
+  }
 }
 
 .store-category-row {
@@ -651,6 +662,14 @@ h1, h2, h3, h4, .font-serif-heading {
   margin-bottom: 24px;
 }
 
+.store-product-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .store-products-heading {
   font-size: 15px;
   line-height: 1;
@@ -665,7 +684,8 @@ h1, h2, h3, h4, .font-serif-heading {
   font-weight: 600;
 }
 
-.store-sort-select {
+.store-sort-select,
+.store-currency-select {
   border: 1px solid #dedede;
   border-radius: 6px;
   padding: 8px 10px;
@@ -1071,6 +1091,17 @@ h1, h2, h3, h4, .font-serif-heading {
   .store-products-heading-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .store-product-controls {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .store-sort-select,
+  .store-currency-select {
+    flex: 1 1 150px;
+    min-width: 0;
   }
 
   .store-market-shell {

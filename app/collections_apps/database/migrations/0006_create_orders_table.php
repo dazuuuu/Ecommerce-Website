@@ -8,7 +8,7 @@ return [
         discount DECIMAL(10,2) NOT NULL DEFAULT 0,
         shipping DECIMAL(10,2) NOT NULL DEFAULT 0,
         total DECIMAL(10,2) NOT NULL,
-        currency VARCHAR(5) NOT NULL DEFAULT 'KSH',
+        currency VARCHAR(5) NOT NULL DEFAULT 'USD',
         payment_method VARCHAR(100) DEFAULT NULL,
         status ENUM('pending','processing','shipped','delivered','cancelled') NOT NULL DEFAULT 'pending',
         shipping_address VARCHAR(255) DEFAULT NULL,

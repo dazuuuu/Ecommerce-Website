@@ -61,8 +61,8 @@ $occasionList = array_values($occasions ?? []);
             <h1><?= e($offer['name']) ?></h1>
             <p><?= e($offer['subtitle'] ?: ($offer['description'] ?? 'Limited-time storefront offer.')) ?></p>
             <div class="store-offer-price-row">
-              <span><?= e(formatPrice((float) $offer['price'], $currency)) ?></span>
-              <?php if ($original): ?><del><?= e(formatPrice((float) $original, $currency)) ?></del><?php endif; ?>
+              <span data-price-usd="<?= e((string) (float) $offer['price']) ?>"><?= e(formatPrice((float) $offer['price'], $currency)) ?></span>
+              <?php if ($original): ?><del data-price-usd="<?= e((string) (float) $original) ?>"><?= e(formatPrice((float) $original, $currency)) ?></del><?php endif; ?>
             </div>
             <div class="store-offer-actions">
               <button data-buy-now data-product-id="<?= e($offer['id']) ?>">Buy Now</button>
@@ -95,7 +95,7 @@ $occasionList = array_values($occasions ?? []);
         <button data-quickview-trigger data-product-id="<?= e($offer['id']) ?>" class="store-offer-mini">
           <?php if ($image): ?><img src="<?= e($image) ?>" alt="" /><?php endif; ?>
           <span><?= e($offer['name']) ?></span>
-          <strong><?= e(formatPrice((float) $offer['price'], $currency)) ?></strong>
+          <strong data-price-usd="<?= e((string) (float) $offer['price']) ?>"><?= e(formatPrice((float) $offer['price'], $currency)) ?></strong>
         </button>
       <?php endforeach; ?>
     </div>

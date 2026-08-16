@@ -23,6 +23,6 @@ $galleryItems = $galleryItems ?? [];
         'focusCategoryKey' => $focus['category'] ?? null,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>
   </script>
-  <script src="<?= asset('assets/js/app.js') ?>"></script>
+  <script src="<?= asset('assets/js/app.js') ?>?v=<?= (int) @filemtime(dirname(__DIR__, 2) . '/assets/js/app.js') ?>"></script>
 </body>
 </html>
