@@ -26,7 +26,7 @@ class OrderController
 
         $payload = Request::json();
         $items = $payload['items'] ?? [];
-        $currency = in_array($payload['currency'] ?? '', ['KSH', 'USD', 'EUR', 'GBP'], true) ? $payload['currency'] : 'KSH';
+        $currency = 'KSH';
         $discountPercent = max(0, min(100, (float) ($payload['discountPercent'] ?? 0)));
         $customerInput = $payload['customer'] ?? [];
         $paymentMethod = trim((string) ($payload['paymentMethod'] ?? ''));

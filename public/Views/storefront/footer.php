@@ -1,3 +1,9 @@
+<?php
+$storeName = storeDisplayName();
+$contactPhone = storeContactPhone();
+$contactEmail = storeContactEmail();
+$contactLocation = storeContactLocation();
+?>
 <footer class="store-footer">
   <div class="store-footer-inner">
     <div class="store-footer-grid">
@@ -27,15 +33,13 @@
       </div>
       <div>
         <h4>Connect</h4>
-        <span>Twitter</span>
-        <span>Threads</span>
-        <span>Facebook</span>
-        <span>Instagram</span>
-        <span>Tiktok</span>
+        <?php if ($contactPhone): ?><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $contactPhone)) ?>"><?= e($contactPhone) ?></a><?php endif; ?>
+        <?php if ($contactEmail): ?><a href="mailto:<?= e($contactEmail) ?>"><?= e($contactEmail) ?></a><?php endif; ?>
+        <?php if ($contactLocation): ?><span><?= e($contactLocation) ?></span><?php endif; ?>
       </div>
     </div>
     <div class="store-footer-bottom">
-      <p>© <?= date('Y') ?> Pentagon Collections. All rights reserved.</p>
+      <p>© <?= date('Y') ?> <?= e($storeName) ?>. All rights reserved.</p>
     </div>
   </div>
 </footer>

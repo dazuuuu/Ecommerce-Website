@@ -18,7 +18,7 @@ $fresh = in_array('--fresh', $argv, true);
 if ($fresh) {
     echo "Dropping existing tables...\n";
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
-    foreach (['order_items', 'orders', 'otp_codes', 'customers', 'products', 'categories', 'admins', 'seo_meta', 'store_settings', 'migrations'] as $table) {
+    foreach (['order_items', 'orders', 'otp_codes', 'customers', 'gallery_items', 'products', 'categories', 'admins', 'seo_meta', 'store_settings', 'migrations'] as $table) {
         $pdo->exec("DROP TABLE IF EXISTS `$table`");
     }
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');

@@ -2,6 +2,10 @@
 /** Requires $settings in scope. */
 require __DIR__ . '/../layout-header.php';
 $logo = $settings['store_logo'] ?? null;
+$storeName = $settings['store_name'] ?? storeDisplayName();
+$contactPhone = $settings['contact_phone'] ?? storeContactPhone();
+$contactEmail = $settings['contact_email'] ?? storeContactEmail();
+$contactLocation = $settings['contact_location'] ?? storeContactLocation();
 ?>
 
 <div class="max-w-3xl space-y-6">
@@ -11,10 +15,29 @@ $logo = $settings['store_logo'] ?? null;
     <div class="flex flex-col gap-4 border-b border-neutral-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <p class="text-xs font-black uppercase tracking-widest text-neutral-600">Store Settings</p>
-        <h2 class="mt-2 text-2xl font-black text-black">Brand Logo</h2>
-        <p class="mt-1 text-sm font-medium text-neutral-700">Upload the logo used on the storefront navbar, admin login, and customer order tracking page.</p>
+        <h2 class="mt-2 text-2xl font-black text-black">Brand & Contact Details</h2>
+        <p class="mt-1 text-sm font-medium text-neutral-700">Manage the logo, website name, and contact details shown on the storefront.</p>
       </div>
-      <button type="submit" class="shrink-0 rounded-lg bg-black px-6 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-neutral-900">Save Logo</button>
+      <button type="submit" class="shrink-0 rounded-lg bg-black px-6 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-neutral-900">Save Settings</button>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Website Name</label>
+        <input type="text" name="store_name" required value="<?= e($storeName) ?>" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+      </div>
+      <div>
+        <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Phone Number</label>
+        <input type="text" name="contact_phone" value="<?= e($contactPhone) ?>" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+      </div>
+      <div>
+        <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Email Address</label>
+        <input type="email" name="contact_email" value="<?= e($contactEmail) ?>" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+      </div>
+      <div class="sm:col-span-2">
+        <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Location</label>
+        <input type="text" name="contact_location" value="<?= e($contactLocation) ?>" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+      </div>
     </div>
 
     <div class="grid gap-5 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-start">
@@ -36,7 +59,6 @@ $logo = $settings['store_logo'] ?? null;
           <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Upload Logo</label>
           <div class="mt-2 flex flex-col gap-2 sm:flex-row">
             <input type="file" name="store_logo" accept="image/*" class="block w-full rounded-lg border border-neutral-400 bg-white p-3 text-sm font-semibold text-black" />
-            <button type="submit" class="rounded-lg bg-black px-5 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-neutral-900 sm:w-32">Save</button>
           </div>
           <p class="mt-2 text-xs font-medium text-neutral-600">Use PNG, JPG, WEBP, or GIF up to 8MB. A transparent PNG works best on both white and black surfaces.</p>
         </div>
@@ -52,8 +74,8 @@ $logo = $settings['store_logo'] ?? null;
           <p class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Where it appears</p>
           <div class="mt-3 grid gap-2 text-sm font-semibold text-black sm:grid-cols-3">
             <span class="rounded-md bg-white px-3 py-2 border border-neutral-200">Store navbar</span>
-            <span class="rounded-md bg-white px-3 py-2 border border-neutral-200">Admin login</span>
-            <span class="rounded-md bg-white px-3 py-2 border border-neutral-200">Order tracking</span>
+            <span class="rounded-md bg-white px-3 py-2 border border-neutral-200">Store footer</span>
+            <span class="rounded-md bg-white px-3 py-2 border border-neutral-200">Admin pages</span>
           </div>
         </div>
       </div>

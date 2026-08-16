@@ -5,6 +5,7 @@ $actionUrl = $product ? url('/admin/products/' . (int) $product['id']) : url('/a
 $selectedCategories = $form['category_keys'] ?? [];
 $colors = is_array($form['colors'] ?? null) ? $form['colors'] : [];
 $hasOffer = !empty($form['has_offer']);
+$isNewArrival = !empty($form['is_new']);
 ?>
 
 <form method="post" action="<?= $actionUrl ?>" enctype="multipart/form-data" class="max-w-4xl space-y-6" id="product-form">
@@ -44,12 +45,28 @@ $hasOffer = !empty($form['has_offer']);
         <p class="text-[11px] text-neutral-400 mt-1">Select one or more categories. The first selected category is used as the primary category.</p>
       </div>
       <div>
-        <label class="text-[11px] font-bold text-neutral-600 uppercase">Base Price (USD base unit)</label>
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">Base Price (KSh)</label>
         <input type="number" step="0.01" min="0.01" name="base_price" required value="<?= e($form['base_price'] ?? $form['price']) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black" />
       </div>
       <div>
         <label class="text-[11px] font-bold text-neutral-600 uppercase">Sizes <span class="text-neutral-400 font-normal normal-case">(optional, one per line)</span></label>
         <textarea name="sizes" rows="3" placeholder="S&#10;M&#10;L" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm font-mono focus:outline-none focus:border-black"><?= e($form['sizes']) ?></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storefront status -->
+  <div class="bg-white border border-neutral-200 rounded-xl shadow-sm p-6 space-y-4">
+    <h2 class="font-serif-heading text-lg font-bold text-[#0a0a0a] border-b border-neutral-100 pb-3">Storefront Status</h2>
+    <label class="flex items-center gap-2 text-sm font-bold text-neutral-800">
+      <input type="checkbox" name="is_new" value="1" <?= $isNewArrival ? 'checked' : '' ?> class="w-4 h-4 accent-black" data-new-arrival-toggle />
+      <span>Show as New Arrival</span>
+    </label>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 <?= $isNewArrival ? '' : 'hidden' ?>" data-new-arrival-fields>
+      <div>
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">Show as New Until <span class="text-neutral-400 font-normal normal-case">(optional)</span></label>
+        <input type="datetime-local" name="new_arrival_until" value="<?= e($form['new_arrival_until'] ?? '') ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black" />
+        <p class="text-[11px] text-neutral-400 mt-1">Leave blank to keep it new until you manually turn it off.</p>
       </div>
     </div>
   </div>
@@ -139,9 +156,16 @@ $hasOffer = !empty($form['has_offer']);
   (function () {
     var offerToggle = document.querySelector('[data-offer-toggle]');
     var offerFields = document.querySelector('[data-offer-fields]');
+    var newArrivalToggle = document.querySelector('[data-new-arrival-toggle]');
+    var newArrivalFields = document.querySelector('[data-new-arrival-fields]');
     if (offerToggle && offerFields) {
       offerToggle.addEventListener('change', function () {
         offerFields.classList.toggle('hidden', !offerToggle.checked);
+      });
+    }
+    if (newArrivalToggle && newArrivalFields) {
+      newArrivalToggle.addEventListener('change', function () {
+        newArrivalFields.classList.toggle('hidden', !newArrivalToggle.checked);
       });
     }
 

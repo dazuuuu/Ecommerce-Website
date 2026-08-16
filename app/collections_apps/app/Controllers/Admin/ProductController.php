@@ -40,6 +40,8 @@ class ProductController extends BaseAdminController
             'category_keys' => $this->selectedCategoryKeys($product),
             'description' => $product['description'] ?? '',
             'sizes' => implode("\n", json_decode($product['sizes'] ?? '[]', true) ?: []),
+            'is_new' => !empty($product['is_new']) ? '1' : '',
+            'new_arrival_until' => $this->datetimeLocalValue($product['new_arrival_until'] ?? null),
             'has_offer' => !empty($product['is_sale']) || !empty($product['original_price']) ? '1' : '',
             'offer_type' => 'price',
             'offer_value' => !empty($product['is_sale']) || !empty($product['original_price']) ? ($product['price'] ?? '') : '',
@@ -93,6 +95,8 @@ class ProductController extends BaseAdminController
             'has_offer' => '',
             'offer_type' => 'price',
             'offer_value' => '',
+            'is_new' => '',
+            'new_arrival_until' => '',
             'colors' => [],
         ];
     }
@@ -123,7 +127,8 @@ class ProductController extends BaseAdminController
         $form['category_key'] = $form['category_keys'][0] ?? '';
         $form['sizes'] = trim((string) Request::post('sizes', ''));
         $form['details'] = '';
-        $form['is_new'] = $product ? (int) ($product['is_new'] ?? 1) : 1;
+        $form['is_new'] = Request::post('is_new') ? '1' : '';
+        $form['new_arrival_until'] = trim((string) Request::post('new_arrival_until', ''));
         $form['is_best_seller'] = $product ? (int) ($product['is_best_seller'] ?? 0) : 0;
         $form['is_sale'] = $product ? (int) ($product['is_sale'] ?? 0) : 0;
         $form['in_stock'] = $product ? (int) ($product['in_stock'] ?? 1) : 1;
@@ -134,6 +139,13 @@ class ProductController extends BaseAdminController
         if ($form['name'] === '') $errors[] = 'Product name is required.';
         if ($form['base_price'] <= 0) $errors[] = 'Base price must be greater than 0.';
         if (!$form['category_keys']) $errors[] = 'Select at least one category.';
+        $newArrivalUntil = null;
+        if ($form['is_new'] === '1' && $form['new_arrival_until'] !== '') {
+            $newArrivalUntil = $this->mysqlDatetimeValue($form['new_arrival_until']);
+            if ($newArrivalUntil === null) {
+                $errors[] = 'New arrival duration must be a valid date and time.';
+            }
+        }
         if ($form['has_offer'] === '1') {
             $offerValue = (float) $form['offer_value'];
             if ($offerValue <= 0) {
@@ -212,6 +224,8 @@ class ProductController extends BaseAdminController
                 'sizes' => json_encode($sizes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'colors' => json_encode($colors, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'images' => json_encode($images, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'is_new' => $form['is_new'] === '1' ? 1 : 0,
+                'new_arrival_until' => $form['is_new'] === '1' ? $newArrivalUntil : null,
                 'is_sale' => $form['has_offer'] === '1' ? 1 : 0,
             ];
 
@@ -232,6 +246,22 @@ class ProductController extends BaseAdminController
         }
 
         $this->showForm($product, $errors, $form, $images);
+    }
+
+    private function datetimeLocalValue(?string $value): string
+    {
+        if (!$value) {
+            return '';
+        }
+
+        $timestamp = strtotime($value);
+        return $timestamp ? date('Y-m-d\TH:i', $timestamp) : '';
+    }
+
+    private function mysqlDatetimeValue(string $value): ?string
+    {
+        $timestamp = strtotime(str_replace('T', ' ', $value));
+        return $timestamp ? date('Y-m-d H:i:s', $timestamp) : null;
     }
 
     private function selectedCategoryKeys(?array $product): array

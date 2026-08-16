@@ -7,6 +7,7 @@ use App\Core\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\GalleryItem;
 use App\Models\Category;
 use App\Models\SeoMeta;
 
@@ -105,6 +106,7 @@ class StorefrontController
         }
         $lookbook = $this->lookbook();
         $reviews = $this->reviews();
+        $galleryItems = GalleryItem::all();
         $currency = 'KSH';
 
         View::render('storefront.layout-head', ['seo' => $seo]);
@@ -120,7 +122,7 @@ class StorefrontController
         View::render('storefront.size-guide-modal');
         View::render('storefront.layout-foot', [
             'products' => $products, 'categories' => $categories, 'occasions' => $occasions, 'lookbook' => $lookbook,
-            'reviews' => $reviews, 'currency' => $currency, 'focus' => $focus,
+            'reviews' => $reviews, 'galleryItems' => $galleryItems, 'currency' => $currency, 'focus' => $focus,
         ]);
     }
 

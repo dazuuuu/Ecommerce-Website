@@ -3,7 +3,7 @@
  * Mirrors src/components/LookbookSection.tsx
  * Initial render = lookbook index 0. Tab switching + hotspot interactions
  * are re-rendered client-side in assets/js/app.js (#lookbook-main / #lookbook-list).
- * Requires $lookbook in scope.
+ * Requires $lookbook and $currency in scope.
  */
 if (empty($lookbook)) {
     $activeLook = null;

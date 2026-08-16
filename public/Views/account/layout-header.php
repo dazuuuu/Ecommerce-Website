@@ -5,29 +5,30 @@
  */
 use App\Core\CustomerSession;
 $loggedInCustomer = CustomerSession::current();
+$storeName = storeDisplayName();
 ?>
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><?= e($pageTitle ?? 'My Account') ?> | Pentagon Collections</title>
+  <title><?= e($pageTitle ?? 'My Account') ?> | <?= e($storeName) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= asset('assets/css/tailwind.css') ?>">
-  <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>?v=<?= (int) @filemtime(dirname(__DIR__, 2) . '/assets/css/app.css') ?>">
 </head>
 <body class="bg-white text-[#1a1a1a] antialiased min-h-screen flex flex-col">
 
   <header class="w-full bg-black py-3 sm:py-4 border-b border-neutral-800 text-white">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 flex items-center justify-between">
       <a href="<?= url('/') ?>" class="inline-flex items-center gap-2 group">
-        <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-[#0a0a0a] text-white rounded-md border border-neutral-300 shrink-0">
-          <?= pentagonLogoSvg('w-4 h-4 text-white') ?>
+        <div class="store-logo-shell w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-[#0a0a0a] text-white rounded-md border border-neutral-300 shrink-0">
+          <?= storeLogoHtml('w-full h-full object-contain rounded-md', 'w-4 h-4 text-white') ?>
         </div>
         <div class="flex flex-col text-left leading-none">
-          <span class="font-serif-heading text-base sm:text-lg font-extrabold tracking-[0.18em] text-white uppercase">PENTAGON</span>
+          <span class="font-serif-heading text-base sm:text-lg font-extrabold tracking-[0.18em] text-white uppercase"><?= e($storeName) ?></span>
           <span class="text-[8px] tracking-[0.3em] text-neutral-300 font-sans font-semibold uppercase mt-0.5">MY ACCOUNT</span>
         </div>
       </a>

@@ -26,14 +26,29 @@ function imageUrl(?string $path): string
     return PathHandler::image($path);
 }
 
-function formatPrice(float $amountInUsd, string $currency): string
+function availableCurrencies(): array
 {
-    if ($currency === 'KSH') {
-        return 'Ksh ' . number_format($amountInUsd * 100);
-    }
-    $rate = $currency === 'EUR' ? 0.92 : ($currency === 'GBP' ? 0.79 : 1.0);
-    $symbol = $currency === 'EUR' ? '€' : ($currency === 'GBP' ? '£' : '$');
-    return $symbol . number_format(round($amountInUsd * $rate));
+    return [
+        'KSH' => ['label' => 'Ksh (KSH)', 'symbol' => 'Ksh ', 'rate' => 1, 'decimals' => 0],
+        'USD' => ['label' => '$ (USD)', 'symbol' => '$', 'rate' => 0.00772, 'decimals' => 2],
+        'EUR' => ['label' => '€ (EUR)', 'symbol' => '€', 'rate' => 0.00679, 'decimals' => 2],
+        'GBP' => ['label' => '£ (GBP)', 'symbol' => '£', 'rate' => 0.00579, 'decimals' => 2],
+        'JPY' => ['label' => '¥ (JPY)', 'symbol' => '¥', 'rate' => 1.265, 'decimals' => 0],
+        'TZS' => ['label' => 'TSh (TZS)', 'symbol' => 'TSh ', 'rate' => 20.35, 'decimals' => 0],
+        'UGX' => ['label' => 'USh (UGX)', 'symbol' => 'USh ', 'rate' => 29.13, 'decimals' => 0],
+        'ZAR' => ['label' => 'R (ZAR)', 'symbol' => 'R', 'rate' => 0.12976, 'decimals' => 2],
+        'CAD' => ['label' => 'C$ (CAD)', 'symbol' => 'C$', 'rate' => 0.01088, 'decimals' => 2],
+        'AUD' => ['label' => 'A$ (AUD)', 'symbol' => 'A$', 'rate' => 0.01105, 'decimals' => 2],
+    ];
+}
+
+function formatPrice(float $amountInKsh, string $currency): string
+{
+    $currencies = availableCurrencies();
+    $config = $currencies[$currency] ?? $currencies['KSH'];
+    $converted = $amountInKsh * $config['rate'];
+
+    return $config['symbol'] . number_format($converted, $config['decimals']);
 }
 
 function pentagonLogoSvg(string $class = 'w-4 h-4 text-white'): string
@@ -50,11 +65,46 @@ function storeLogoPath(): ?string
     }
 }
 
+function storeSettingValue(string $key, string $default = ''): string
+{
+    try {
+        return StoreSetting::get($key, $default) ?? $default;
+    } catch (Throwable $e) {
+        return $default;
+    }
+}
+
+function storeName(): string
+{
+    return storeSettingValue('store_name', 'Pentagon Collections');
+}
+
+function storeDisplayName(): string
+{
+    $name = trim(storeName());
+    return $name !== '' ? $name : 'Pentagon Collections';
+}
+
+function storeContactPhone(): string
+{
+    return storeSettingValue('contact_phone', '+254 747 900 900');
+}
+
+function storeContactEmail(): string
+{
+    return storeSettingValue('contact_email', 'concierge@pentagoncollections.com');
+}
+
+function storeContactLocation(): string
+{
+    return storeSettingValue('contact_location', 'Nairobi, Kenya');
+}
+
 function storeLogoHtml(string $imageClass, string $fallbackSvgClass = 'w-4 h-4 text-white'): string
 {
     $logo = storeLogoPath();
     if ($logo) {
-        return '<img src="' . e(imageUrl($logo)) . '" alt="Store logo" class="' . e($imageClass) . '" />';
+        return '<img src="' . e(imageUrl($logo)) . '" alt="Store logo" class="' . e(trim($imageClass . ' store-logo-image')) . '" />';
     }
     return pentagonLogoSvg($fallbackSvgClass);
 }

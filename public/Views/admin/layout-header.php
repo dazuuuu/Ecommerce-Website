@@ -2,7 +2,7 @@
 /**
  * Shared admin shell (sidebar + topbar). Include after setting:
  *   $pageTitle  — shown in <title> and the topbar
- *   $activeNav  — one of: dashboard, products, product-form, categories, offers, orders, seo, settings
+ *   $activeNav  — one of: dashboard, products, product-form, gallery, categories, offers, orders, seo, settings
  * Requires App\Core\AdminSession::require() to have already run.
  */
 
@@ -13,6 +13,7 @@ $navItems = [
     ['id' => 'dashboard', 'href' => url('/admin'), 'label' => 'Dashboard'],
     ['id' => 'products', 'href' => url('/admin/products'), 'label' => 'Products'],
     ['id' => 'product-form', 'href' => url('/admin/products/create'), 'label' => 'Add Product'],
+    ['id' => 'gallery', 'href' => url('/admin/gallery'), 'label' => 'Gallery'],
     ['id' => 'offers', 'href' => url('/admin/offers'), 'label' => 'Offers'],
     ['id' => 'categories', 'href' => url('/admin/categories'), 'label' => 'Categories'],
     ['id' => 'orders', 'href' => url('/admin/orders'), 'label' => 'Orders'],
@@ -20,6 +21,7 @@ $navItems = [
     ['id' => 'settings', 'href' => url('/admin/settings'), 'label' => 'Settings'],
 ];
 $admin = AdminSession::current();
+$storeName = storeDisplayName();
 $pendingMigrations = [];
 try {
     $pendingMigrations = MigrationService::pending();
@@ -37,7 +39,7 @@ try {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= asset('assets/css/tailwind.css') ?>">
-  <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>?v=<?= (int) @filemtime(dirname(__DIR__, 2) . '/assets/css/app.css') ?>">
 </head>
 <body class="admin-panel bg-white text-[#1a1a1a] antialiased min-h-screen flex">
 
@@ -45,11 +47,11 @@ try {
   <aside class="w-60 shrink-0 bg-white text-black min-h-screen flex flex-col justify-between border-r border-black sticky top-0 self-start h-screen overflow-y-auto">
     <div>
       <div class="flex items-center gap-2.5 px-5 py-5 border-b border-black">
-        <div class="w-8 h-8 bg-[#0a0a0a] text-white flex items-center justify-center rounded-lg border border-black shrink-0">
+        <div class="store-logo-shell w-10 h-10 bg-[#0a0a0a] text-white flex items-center justify-center rounded-lg border border-black shrink-0">
           <?= storeLogoHtml('w-full h-full object-contain rounded-lg', 'w-4 h-4 text-white') ?>
         </div>
         <div class="flex flex-col leading-none">
-          <span class="font-serif-heading text-sm font-extrabold tracking-[0.15em] uppercase text-black">PENTAGON</span>
+          <span class="font-serif-heading text-sm font-extrabold tracking-[0.15em] uppercase text-black"><?= e($storeName) ?></span>
           <span class="text-[8px] tracking-[0.25em] text-neutral-700 uppercase mt-0.5 font-bold">Admin Panel</span>
         </div>
       </div>

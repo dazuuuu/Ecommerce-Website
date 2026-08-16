@@ -26,6 +26,25 @@ class SettingsController extends BaseAdminController
             redirect('/admin/settings');
         }
 
+        $storeName = trim((string) Request::post('store_name', ''));
+        $contactPhone = trim((string) Request::post('contact_phone', ''));
+        $contactEmail = trim((string) Request::post('contact_email', ''));
+        $contactLocation = trim((string) Request::post('contact_location', ''));
+
+        if ($storeName === '') {
+            flashError('Store name is required.');
+            redirect('/admin/settings');
+        }
+        if ($contactEmail !== '' && !filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
+            flashError('Enter a valid contact email address.');
+            redirect('/admin/settings');
+        }
+
+        StoreSetting::set('store_name', $storeName);
+        StoreSetting::set('contact_phone', $contactPhone);
+        StoreSetting::set('contact_email', $contactEmail);
+        StoreSetting::set('contact_location', $contactLocation);
+
         $currentLogo = StoreSetting::get('store_logo');
         if (Request::post('remove_logo') && $currentLogo) {
             UploadService::delete($currentLogo);

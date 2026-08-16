@@ -1,25 +1,26 @@
 <?php
 /** Requires $error in scope. */
+$storeName = storeDisplayName();
 ?>
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Login | Pentagon Collections</title>
+  <title>Admin Login | <?= e($storeName) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= asset('assets/css/tailwind.css') ?>">
-  <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>?v=<?= (int) @filemtime(dirname(__DIR__, 2) . '/assets/css/app.css') ?>">
 </head>
 <body class="bg-[#0a0a0a] text-white antialiased min-h-screen flex items-center justify-center p-4">
   <div class="w-full max-w-sm">
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-12 h-12 bg-black text-white rounded-xl border border-neutral-300 mb-3">
+      <div class="store-logo-shell inline-flex items-center justify-center w-12 h-12 bg-black text-white rounded-xl border border-neutral-300 mb-3">
         <?= storeLogoHtml('w-full h-full object-contain rounded-xl', 'w-6 h-6 text-white') ?>
       </div>
-      <h1 class="font-serif-heading text-2xl font-bold tracking-widest uppercase">Pentagon Admin</h1>
+      <h1 class="font-serif-heading text-2xl font-bold tracking-widest uppercase"><?= e($storeName) ?> Admin</h1>
       <p class="text-xs text-neutral-500 mt-1">Sign in to manage products, categories &amp; orders</p>
     </div>
 

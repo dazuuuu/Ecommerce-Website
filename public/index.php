@@ -14,6 +14,7 @@ use App\Controllers\Api\OrderController as ApiOrderController;
 use App\Controllers\Admin\AuthController as AdminAuthController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\ProductController;
+use App\Controllers\Admin\GalleryController;
 use App\Controllers\Admin\CategoryController;
 use App\Controllers\Admin\OfferController;
 use App\Controllers\Admin\OrderController as AdminOrderController;
@@ -54,6 +55,12 @@ $router->post('/admin/products', [ProductController::class, 'store']);
 $router->get('/admin/products/{id}/edit', [ProductController::class, 'edit']);
 $router->post('/admin/products/{id}', [ProductController::class, 'update']);
 $router->post('/admin/products/{id}/delete', [ProductController::class, 'destroy']);
+
+// --- Admin: gallery ---
+$router->get('/admin/gallery', [GalleryController::class, 'index']);
+$router->post('/admin/gallery', [GalleryController::class, 'store']);
+$router->post('/admin/gallery/{id}', [GalleryController::class, 'update']);
+$router->post('/admin/gallery/{id}/delete', [GalleryController::class, 'destroy']);
 
 // --- Admin: categories ---
 $router->get('/admin/categories', [CategoryController::class, 'index']);

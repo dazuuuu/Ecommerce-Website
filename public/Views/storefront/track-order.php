@@ -13,7 +13,7 @@ $currentIndex = $currentStatus ? array_search($currentStatus, $statusSteps, true
 <main class="flex-1 bg-white">
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
     <div class="mb-8">
-      <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-black p-2 text-white">
+      <div class="store-logo-shell mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-black p-2 text-white">
         <?= storeLogoHtml('h-full w-full object-contain rounded-lg', 'w-7 h-7 text-white') ?>
       </div>
       <span class="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-1">Customer Care</span>

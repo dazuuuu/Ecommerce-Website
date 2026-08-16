@@ -17,17 +17,19 @@ $occasionLinks = array_map(fn(array $occasion): array => [
     'label' => $occasion['label'],
 ], $occasions ?? []);
 $browseLinks = array_merge($navLinks, $occasionLinks);
-$currencyLabels = [
-    'KSH' => 'Ksh (KSH)',
-    'USD' => '$ (USD)',
-    'EUR' => '€ (EUR)',
-    'GBP' => '£ (GBP)',
-];
+$currencyLabels = array_map(fn(array $currency): string => $currency['label'], availableCurrencies());
+$storeName = storeDisplayName();
+$contactPhone = storeContactPhone();
+$contactEmail = storeContactEmail();
+$contactLocation = storeContactLocation();
 ?>
 <header class="sticky top-0 z-40 w-full bg-white" id="site-header">
   <div class="store-top-strip">
     <div class="store-nav-inner store-top-strip-inner">
-      <span>(+254) 747900900</span>
+      <span><?= e($contactPhone) ?></span>
+      <?php if ($contactEmail): ?>
+        <a href="mailto:<?= e($contactEmail) ?>"><?= e($contactEmail) ?></a>
+      <?php endif; ?>
       <a id="top-track-order" class="store-track-btn" href="<?= url('/track-order') ?>">Track My Order</a>
     </div>
   </div>
@@ -47,7 +49,7 @@ $currencyLabels = [
       <div class="store-brand-wrap">
         <button data-select-category="all" class="store-brand nav-select">
           <span class="store-brand-mark"><?= storeLogoHtml('w-full h-full object-contain', 'w-4 h-4') ?></span>
-          <span class="store-brand-text">PENTAGON</span>
+          <span class="store-brand-text"><?= e($storeName) ?></span>
         </button>
       </div>
 
@@ -115,10 +117,10 @@ $currencyLabels = [
       <div>
         <div class="flex items-center justify-between pb-4 border-b border-neutral-200">
           <div class="flex items-center gap-2">
-            <div class="w-7 h-7 bg-black text-white flex items-center justify-center rounded-md">
+            <div class="store-logo-shell w-10 h-10 bg-black text-white flex items-center justify-center rounded-md">
               <?= storeLogoHtml('w-full h-full object-contain rounded-md', 'w-4 h-4 text-white') ?>
             </div>
-            <span class="font-extrabold text-base tracking-widest text-black uppercase">PENTAGON</span>
+            <span class="font-extrabold text-base tracking-widest text-black uppercase"><?= e($storeName) ?></span>
           </div>
           <button id="mobile-drawer-close" class="p-1.5 text-black hover:text-neutral-600 cursor-pointer rounded-md">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -148,7 +150,7 @@ $currencyLabels = [
       <div class="pt-4 border-t border-neutral-200 space-y-3 text-xs text-neutral-700">
         <div class="flex items-center justify-between">
           <span class="text-neutral-500 text-xs font-medium">Currency:</span>
-          <div class="flex space-x-1" id="mobile-currency-options">
+          <div class="flex flex-wrap gap-1 justify-end max-w-[190px]" id="mobile-currency-options">
             <?php foreach (array_keys($currencyLabels) as $code): ?>
               <button data-select-currency="<?= e($code) ?>" class="currency-option-mobile px-2 py-1 rounded text-[11px] font-bold cursor-pointer bg-white text-black border border-neutral-300"><?= e($code) ?></button>
             <?php endforeach; ?>
@@ -160,7 +162,7 @@ $currencyLabels = [
         </button>
 
         <p class="text-[10px] text-neutral-400 pt-2 border-t border-neutral-200">
-          © Pentagon Collections. Nairobi, Kenya.
+          © <?= e($storeName) ?>. <?= e($contactLocation) ?>.
         </p>
       </div>
     </div>

@@ -57,7 +57,9 @@ require __DIR__ . '/../layout-header.php';
           </td>
           <td class="px-5 py-3">
             <div class="flex flex-wrap gap-1">
-              <?php if ($p['is_new']): ?><span class="px-1.5 py-0.5 rounded bg-neutral-100 text-black text-[9px] font-bold">NEW</span><?php endif; ?>
+              <?php if ($p['is_new']): ?>
+                <span class="px-1.5 py-0.5 rounded bg-neutral-100 text-black text-[9px] font-bold" title="<?= !empty($p['new_arrival_until']) ? 'New until ' . e(date('M j, Y g:i A', strtotime($p['new_arrival_until']))) : 'New until manually turned off' ?>">NEW<?= !empty($p['new_arrival_until']) ? ' UNTIL ' . e(date('M j', strtotime($p['new_arrival_until']))) : '' ?></span>
+              <?php endif; ?>
               <?php if ($p['is_best_seller']): ?><span class="px-1.5 py-0.5 rounded bg-neutral-100 text-black text-[9px] font-bold">BEST</span><?php endif; ?>
               <?php if ($p['is_sale']): ?><span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold">SALE</span><?php endif; ?>
               <?php if (!$p['in_stock']): ?><span class="px-1.5 py-0.5 rounded bg-neutral-200 text-neutral-600 text-[9px] font-bold">OUT</span><?php endif; ?>

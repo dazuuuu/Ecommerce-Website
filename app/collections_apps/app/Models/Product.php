@@ -144,6 +144,8 @@ class Product
     {
         Database::connection()
             ->exec('UPDATE products SET is_sale = 0, original_price = NULL, offer_image = NULL, offer_ends_at = NULL WHERE is_sale = 1 AND offer_ends_at IS NOT NULL AND offer_ends_at <= NOW()');
+        Database::connection()
+            ->exec('UPDATE products SET is_new = 0, new_arrival_until = NULL WHERE is_new = 1 AND new_arrival_until IS NOT NULL AND new_arrival_until <= NOW()');
     }
 
     /** Converts a DB row into the shape storefront templates/JS expect. */
@@ -166,6 +168,7 @@ class Product
             'images' => json_decode($row['images'] ?? '[]', true) ?: [],
             'offerImage' => $row['offer_image'] ?? null,
             'offerEndsAt' => $row['offer_ends_at'] ?? null,
+            'newArrivalUntil' => $row['new_arrival_until'] ?? null,
             'description' => $row['description'],
             'details' => json_decode($row['details'] ?? '[]', true) ?: [],
             'fabric' => $row['fabric'],

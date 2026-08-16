@@ -19,6 +19,7 @@
   var OCCASIONS = DATA.occasions || [];
   var LOOKBOOK = DATA.lookbook;
   var REVIEWS = DATA.reviews;
+  var GALLERY_ITEMS = DATA.galleryItems || [];
   var BASE_URL = (DATA.baseUrl || '/').replace(/\/$/, '');
 
   function siteUrl(path) {
@@ -91,13 +92,26 @@
     return div.innerHTML;
   }
 
-  function formatPrice(amountUsd, currency) {
-    if (currency === 'KSH') {
-      return 'Ksh ' + Math.round(amountUsd * 100).toLocaleString('en-US');
-    }
-    var rate = currency === 'EUR' ? 0.92 : currency === 'GBP' ? 0.79 : 1.0;
-    var symbol = currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
-    return symbol + Math.round(amountUsd * rate).toLocaleString('en-US');
+  var CURRENCIES = DATA.currencies || {
+    KSH: { symbol: 'Ksh ', rate: 1, decimals: 0 },
+    USD: { symbol: '$', rate: 0.00772, decimals: 2 },
+    EUR: { symbol: '€', rate: 0.00679, decimals: 2 },
+    GBP: { symbol: '£', rate: 0.00579, decimals: 2 },
+    JPY: { symbol: '¥', rate: 1.265, decimals: 0 },
+    TZS: { symbol: 'TSh ', rate: 20.35, decimals: 0 },
+    UGX: { symbol: 'USh ', rate: 29.13, decimals: 0 },
+    ZAR: { symbol: 'R', rate: 0.12976, decimals: 2 },
+    CAD: { symbol: 'C$', rate: 0.01088, decimals: 2 },
+    AUD: { symbol: 'A$', rate: 0.01105, decimals: 2 },
+  };
+
+  function formatPrice(amountKsh, currency) {
+    var config = CURRENCIES[currency] || CURRENCIES.KSH;
+    var value = amountKsh * config.rate;
+    return config.symbol + value.toLocaleString('en-US', {
+      minimumFractionDigits: config.decimals,
+      maximumFractionDigits: config.decimals,
+    });
   }
 
   function findProduct(id) {
@@ -111,7 +125,7 @@
   var state = {
     currentCategory: 'all',
     sortBy: 'featured',
-    currency: DATA.currency || 'KSH',
+    currency: CURRENCIES[DATA.currency] ? DATA.currency : 'KSH',
     cart: [], // { productId, selectedColor:{name,hex}, selectedSize, quantity }
     wishlist: [], // array of productId
     appliedDiscountPercent: 0,
@@ -215,6 +229,7 @@
   }
 
   function setCurrency(c) {
+    if (!CURRENCIES[c]) c = 'KSH';
     state.currency = c;
     updateHeaderUI();
     renderProductsSection();
@@ -398,6 +413,24 @@
     );
   }
 
+  function renderGalleryCardHTML(item) {
+    return (
+      '<article class="product-card group gallery-card" data-gallery-id="' + esc(item.id) + '">' +
+        '<div>' +
+          '<div class="product-card-image-wrap">' +
+            '<img src="' + esc(imgUrl(item.image)) + '" data-primary="' + esc(imgUrl(item.image)) + '" data-secondary="' + esc(imgUrl(item.image)) + '" alt="' + esc(item.title || 'Gallery image') + '" class="product-card-img w-full h-full object-cover object-center transition-transform duration-200 ease-out pointer-events-none scale-100" />' +
+            (item.is_new || item.isNew ? '<div class="product-card-badges"><span>NEW</span></div>' : '') +
+          '</div>' +
+          ((item.title || item.description) ?
+            '<div class="product-card-body">' +
+              (item.title ? '<div class="product-card-title-row"><h3>' + esc(item.title) + '</h3></div>' : '') +
+              (item.description ? '<p class="text-xs text-neutral-500 leading-relaxed mt-1">' + esc(item.description) + '</p>' : '') +
+            '</div>' : '') +
+        '</div>' +
+      '</article>'
+    );
+  }
+
   function attachProductCardHoverEffects(container) {
     container.querySelectorAll('.product-card-image-wrap').forEach(function (wrap) {
       var img = wrap.querySelector('.product-card-img');
@@ -438,8 +471,33 @@
 
     var grid = document.getElementById('product-grid');
     var list = computeFilteredProducts();
+    var galleryList = state.currentCategory === 'new'
+      ? GALLERY_ITEMS.filter(function (item) { return item.is_new || item.isNew; })
+      : [];
+    var comingSoon = document.getElementById('coming-soon-section');
     var count = document.getElementById('products-count');
     if (count) count.textContent = list.length + (list.length === 1 ? ' item found' : ' items found');
+
+    if (galleryList.length) {
+      if (!comingSoon) {
+        comingSoon = document.createElement('section');
+        comingSoon.id = 'coming-soon-section';
+        comingSoon.className = 'store-coming-soon-section';
+        comingSoon.setAttribute('aria-label', 'Coming soon');
+        grid.insertAdjacentElement('afterend', comingSoon);
+      }
+      comingSoon.innerHTML =
+        '<div class="store-products-heading-row">' +
+          '<div>' +
+            '<h2 class="store-products-heading">Coming Soon</h2>' +
+            '<p class="store-products-count">' + galleryList.length + (galleryList.length === 1 ? ' look uploaded' : ' looks uploaded') + '</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="store-product-grid">' + galleryList.map(renderGalleryCardHTML).join('') + '</div>';
+      attachProductCardHoverEffects(comingSoon);
+    } else if (comingSoon) {
+      comingSoon.remove();
+    }
 
     if (list.length === 0) {
       grid.className = '';
@@ -517,7 +575,7 @@
     renderCartDrawer();
   }
 
-  function cartSubtotalUsd() {
+  function cartSubtotalKsh() {
     return state.cart.reduce(function (sum, item) { return sum + findProduct(item.productId).price * item.quantity; }, 0);
   }
 
@@ -535,7 +593,7 @@
     var root = document.getElementById('modal-cart');
     if (!root) return;
     var items = state.cart;
-    var rawSubtotal = cartSubtotalUsd();
+    var rawSubtotal = cartSubtotalKsh();
     var discountAmount = Math.round(rawSubtotal * (cartUiState.discountPercent / 100));
     var finalTotal = rawSubtotal - discountAmount;
     var freeShippingThreshold = 100;
@@ -934,7 +992,7 @@
   }
 
   function checkoutTotals() {
-    var rawSubtotal = cartSubtotalUsd();
+    var rawSubtotal = cartSubtotalKsh();
     var discountAmount = Math.round(rawSubtotal * (state.appliedDiscountPercent / 100));
     var shipping = rawSubtotal >= 100 ? 0 : 15;
     var total = rawSubtotal - discountAmount + shipping;
@@ -1156,7 +1214,7 @@
         '<div class="absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden group-hover:flex items-center bg-white text-black p-2.5 rounded-xs shadow-2xl w-52 z-30 border border-neutral-200 animate-fade-in">' +
         '<img src="' + esc(imgUrl(item.product.images[0])) + '" alt="" class="w-10 h-12 object-cover rounded-xs mr-2" />' +
         '<div class="flex-1 min-w-0"><p class="font-serif-heading font-bold text-xs text-neutral-900 truncate">' + esc(item.product.name) + '</p>' +
-        '<p class="text-[10px] text-neutral-800 font-bold mt-0.5">$' + item.product.price + '</p>' +
+        '<p class="text-[10px] text-neutral-800 font-bold mt-0.5">' + esc(formatPrice(item.product.price, state.currency)) + '</p>' +
         '<span class="text-[9px] uppercase tracking-wider text-neutral-400 font-semibold block mt-0.5">Shop This Piece →</span></div></div></div></div>';
     }).join('');
     return '<img src="' + esc(imgUrl(look.mainImage)) + '" alt="' + esc(look.title) + '" class="w-full h-full object-cover object-center filter brightness-95" />' +
@@ -1173,7 +1231,7 @@
         '<img src="' + esc(imgUrl(p.images[0])) + '" alt="' + esc(p.name) + '" class="w-16 h-20 object-cover rounded-xs" />' +
         '<div class="flex-1 min-w-0"><p class="text-[10px] text-white font-mono uppercase tracking-widest">' + esc(p.subCategory) + '</p>' +
         '<h5 class="font-serif-heading text-sm font-bold text-white group-hover:text-neutral-200 truncate">' + esc(p.name) + '</h5>' +
-        '<p class="text-xs font-bold text-neutral-300 mt-1">$' + p.price + '</p></div>' +
+        '<p class="text-xs font-bold text-neutral-300 mt-1">' + esc(formatPrice(p.price, state.currency)) + '</p></div>' +
         '<div class="p-2 bg-neutral-800 group-hover:bg-neutral-200 group-hover:text-black rounded-xs transition-colors">' + icon('eye', 'w-4 h-4') + '</div></div>';
     }).join('');
   }
