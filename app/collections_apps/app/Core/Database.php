@@ -14,7 +14,7 @@ class Database
             Env::load();
             $host = Env::get('DB_HOST', '127.0.0.1');
             $port = Env::get('DB_PORT', '3306');
-            $name = Env::get('DB_NAME', 'pentagon_collections');
+            $name = Env::get('DB_NAME', 'ujuzi_training');
             $user = Env::get('DB_USER', 'root');
             $pass = Env::get('DB_PASS', '');
 
