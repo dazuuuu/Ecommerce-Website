@@ -51,6 +51,26 @@ function formatPrice(float $amountInUsd, string $currency): string
     return $config['symbol'] . number_format($converted, $config['decimals']);
 }
 
+/** Converted numeric amount (no symbol), e.g. for structured data / og price tags. */
+function convertPrice(float $amountInUsd, string $currency): float
+{
+    $currencies = availableCurrencies();
+    $config = $currencies[$currency] ?? $currencies['USD'];
+    return round($amountInUsd * $config['rate'], $config['decimals']);
+}
+
+/** Plain, single-line text trimmed on a word boundary — for meta descriptions. */
+function seoText(?string $text, int $limit = 160): string
+{
+    $text = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $text)));
+    if (mb_strlen($text) <= $limit) {
+        return $text;
+    }
+    $cut = mb_substr($text, 0, $limit - 1);
+    $space = mb_strrpos($cut, ' ');
+    return rtrim($space > $limit * 0.6 ? mb_substr($cut, 0, $space) : $cut, " ,.;:-") . '…';
+}
+
 function pentagonLogoSvg(string $class = 'w-4 h-4 text-white'): string
 {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="' . $class . '"><polygon points="12,2 22,9 18,21 6,21 2,9" /></svg>';
@@ -63,6 +83,25 @@ function storeLogoPath(): ?string
     } catch (Throwable $e) {
         return null;
     }
+}
+
+/** <link> tags for the favicons generated from the uploaded store logo. */
+function faviconTags(?string $manifestUrl = null): string
+{
+    try {
+        $icons = \App\Services\FaviconService::ensure(storeLogoPath());
+    } catch (Throwable $e) {
+        $icons = [];
+    }
+    if (!$icons) {
+        return '';
+    }
+    $v = '?v=' . (int) @filemtime(\App\Core\PathHandler::publicRoot() . '/' . $icons['ico']);
+    return '<link rel="icon" href="' . e(url('/favicon.ico')) . $v . '" sizes="any" />' . "\n"
+        . '  <link rel="icon" type="image/png" sizes="32x32" href="' . e(asset($icons[32])) . $v . '" />' . "\n"
+        . '  <link rel="icon" type="image/png" sizes="192x192" href="' . e(asset($icons[192])) . $v . '" />' . "\n"
+        . '  <link rel="apple-touch-icon" sizes="180x180" href="' . e(asset($icons[180])) . $v . '" />' . "\n"
+        . '  <link rel="manifest" href="' . e($manifestUrl ?? url('/site.webmanifest')) . '" />';
 }
 
 function storeSettingValue(string $key, string $default = ''): string
@@ -98,6 +137,43 @@ function storeContactEmail(): string
 function storeContactLocation(): string
 {
     return storeSettingValue('contact_location', 'Nairobi, Kenya');
+}
+
+function storeWhatsappNumber(): string
+{
+    $number = trim(storeSettingValue('whatsapp_number', ''));
+    return $number !== '' ? $number : storeContactPhone();
+}
+
+function whatsappNumberDigits(?string $number = null): string
+{
+    return preg_replace('/\D+/', '', $number ?? storeWhatsappNumber());
+}
+
+function productUrl(array $product): string
+{
+    $baseUrl = rtrim(PathHandler::appUrl(), '/');
+    $path = '/product/' . rawurlencode((string) ($product['id'] ?? ''));
+    return $baseUrl !== '' ? $baseUrl . $path : url($path);
+}
+
+function whatsappProductUrl(array $product, string $currency, int $quantity = 1): string
+{
+    $number = whatsappNumberDigits();
+    if ($number === '') {
+        return '#';
+    }
+
+    $message = implode("\n", [
+        'Hello, I am interested in this product:',
+        'Product: ' . ($product['name'] ?? ''),
+        'Code: ' . ($product['id'] ?? ''),
+        'Price: ' . formatPrice((float) ($product['price'] ?? 0), $currency),
+        'Quantity: ' . max(1, $quantity),
+        'Link: ' . productUrl($product),
+    ]);
+
+    return 'https://wa.me/' . $number . '?text=' . rawurlencode($message);
 }
 
 function storeLogoHtml(string $imageClass, string $fallbackSvgClass = 'w-4 h-4 text-white'): string

@@ -6,6 +6,9 @@ $storeName = $settings['store_name'] ?? storeDisplayName();
 $contactPhone = $settings['contact_phone'] ?? storeContactPhone();
 $contactEmail = $settings['contact_email'] ?? storeContactEmail();
 $contactLocation = $settings['contact_location'] ?? storeContactLocation();
+$whatsappNumber = $settings['whatsapp_number'] ?? storeWhatsappNumber();
+$googleVerification = $settings['google_site_verification'] ?? '';
+$bingVerification = $settings['bing_site_verification'] ?? '';
 ?>
 
 <div class="max-w-3xl space-y-6">
@@ -37,6 +40,19 @@ $contactLocation = $settings['contact_location'] ?? storeContactLocation();
       <div class="sm:col-span-2">
         <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Location</label>
         <input type="text" name="contact_location" value="<?= e($contactLocation) ?>" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+      </div>
+      <div class="sm:col-span-2">
+        <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Google Search Console Verification</label>
+        <input type="text" name="google_site_verification" value="<?= e($googleVerification) ?>" placeholder="Paste the HTML tag or its content code" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+      </div>
+      <div class="sm:col-span-2">
+        <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Bing Webmaster Verification</label>
+        <input type="text" name="bing_site_verification" value="<?= e($bingVerification) ?>" placeholder="Paste the HTML tag or its content code" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+      </div>
+      <div class="sm:col-span-2">
+        <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">WhatsApp CTA Number</label>
+        <input type="text" name="whatsapp_number" value="<?= e($whatsappNumber) ?>" placeholder="+254 747 900 900" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+        <p class="mt-2 text-xs font-medium text-neutral-600">Product card WhatsApp buttons send customers to this number with the selected product details filled in.</p>
       </div>
     </div>
 
@@ -86,6 +102,54 @@ $contactLocation = $settings['contact_location'] ?? storeContactLocation();
       <a href="<?= url('/admin') ?>" class="text-xs font-black text-neutral-700 hover:text-black">Back to Dashboard</a>
     </div>
   </form>
+
+  <div class="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm space-y-6">
+    <div class="border-b border-neutral-200 pb-5">
+      <p class="text-xs font-black uppercase tracking-widest text-neutral-600">Access Control</p>
+      <h2 class="mt-2 text-2xl font-black text-black">Administrators</h2>
+      <p class="mt-1 text-sm font-medium text-neutral-700">Manage who has access to the admin dashboard.</p>
+    </div>
+
+    <div class="space-y-4">
+      <?php $currentAdminId = \App\Core\AdminSession::id(); ?>
+      <?php foreach ($admins ?? [] as $admin): ?>
+        <div class="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+          <div>
+            <p class="text-sm font-bold text-black"><?= e($admin['email']) ?></p>
+            <?php if ((int)$admin['id'] === $currentAdminId): ?>
+              <p class="text-xs font-medium text-emerald-600 mt-1">You (Current User)</p>
+            <?php endif; ?>
+          </div>
+          <?php if ((int)$admin['id'] !== $currentAdminId): ?>
+            <form method="post" action="<?= url('/admin/settings/admins/' . $admin['id'] . '/delete') ?>" onsubmit="return confirm('Are you sure you want to remove this administrator?');">
+              <?= csrfField() ?>
+              <button type="submit" class="text-xs font-black uppercase tracking-widest text-rose-600 hover:text-rose-800">Remove</button>
+            </form>
+          <?php endif; ?>
+        </div>
+      <?php endforeach; ?>
+    </div>
+
+    <form method="post" action="<?= url('/admin/settings/admins') ?>" class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 space-y-4">
+      <?= csrfField() ?>
+      <p class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Add New Administrator</p>
+      
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Email Address</label>
+          <input type="email" name="email" required class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-[11px] font-black uppercase tracking-widest text-neutral-700">Temporary Password</label>
+          <input type="password" name="password" required minlength="6" class="mt-2 w-full rounded-lg border border-neutral-400 bg-white px-4 py-3 text-sm font-semibold text-black focus:border-black focus:outline-none" />
+        </div>
+      </div>
+      
+      <div class="pt-2">
+        <button type="submit" class="rounded-lg bg-black px-6 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-neutral-900">Add Administrator</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <?php require __DIR__ . '/../layout-footer.php'; ?>

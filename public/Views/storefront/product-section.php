@@ -11,7 +11,7 @@ $currencyLabels = array_map(fn(array $currency): string => $currency['label'], a
 <section id="products-section" class="store-products-section">
   <div class="store-products-heading-row">
     <div>
-      <h2 id="products-heading" class="store-products-heading">Recommended for You</h2>
+      <h2 id="products-heading" class="store-products-heading"><?= e($heading ?? 'Recommended for You') ?></h2>
       <p id="products-count" class="store-products-count"><?= count($products) ?> items found</p>
     </div>
     <div class="store-product-controls">

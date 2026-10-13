@@ -3,76 +3,75 @@
 namespace App\Controllers\Admin;
 
 use App\Core\Database;
+use App\Core\Request;
 use App\Core\View;
 use App\Models\Order;
 use App\Models\Product;
 
 class DashboardController extends BaseAdminController
 {
+    private const RANGES = ['week' => 7, 'month' => 30];
+
     public function index(): void
     {
         Product::expireMaturedOffers();
-        $pdo = Database::connection();
-        $orderCounts = Order::counts();
-        $totalRevenue = (float) $pdo->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status <> 'cancelled'")->fetchColumn();
-        $monthlyRevenue = (float) $pdo->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status <> 'cancelled' AND created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')")->fetchColumn();
-        $todayOrders = (int) $pdo->query('SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()')->fetchColumn();
-        $fulfilledOrders = (int) $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'delivered'")->fetchColumn();
-        $activeProducts = (int) $pdo->query('SELECT COUNT(*) FROM products WHERE in_stock = 1')->fetchColumn();
-        $outOfStockProducts = (int) $pdo->query('SELECT COUNT(*) FROM products WHERE in_stock = 0')->fetchColumn();
+        $range = (string) Request::query('range', 'week');
+        if (!isset(self::RANGES[$range])) {
+            $range = 'week';
+        }
+        $days = self::RANGES[$range];
 
-        $stats = [
-            'products' => (int) $pdo->query('SELECT COUNT(*) FROM products')->fetchColumn(),
-            'onOffer' => (int) $pdo->query('SELECT COUNT(*) FROM products WHERE is_sale = 1')->fetchColumn(),
-            'categories' => (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn(),
-            'orders' => $orderCounts['total'],
-            'pendingOrders' => $orderCounts['pending'],
-            'customers' => (int) $pdo->query('SELECT COUNT(*) FROM customers')->fetchColumn(),
-            'totalRevenue' => $totalRevenue,
-            'monthlyRevenue' => $monthlyRevenue,
-            'todayOrders' => $todayOrders,
-            'fulfilledOrders' => $fulfilledOrders,
-            'fulfillmentRate' => $orderCounts['total'] > 0 ? round(($fulfilledOrders / $orderCounts['total']) * 100, 1) : 0,
-            'activeProducts' => $activeProducts,
-            'outOfStockProducts' => $outOfStockProducts,
+        $kpis = [
+            'orders' => $this->metric("SELECT COUNT(*) FROM orders WHERE created_at >= :from AND created_at < :to", $days),
+            'customers' => $this->metric("SELECT COUNT(*) FROM customers WHERE created_at >= :from AND created_at < :to", $days),
+            'pending' => $this->metric("SELECT COUNT(*) FROM orders WHERE status = 'pending' AND created_at >= :from AND created_at < :to", $days),
+            'revenue' => $this->metric("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status <> 'cancelled' AND created_at >= :from AND created_at < :to", $days),
         ];
 
-        $trendRows = $pdo->query(
-            "SELECT DATE_FORMAT(created_at, '%b') AS month_label,
-                    MONTH(created_at) AS month_number,
-                    COUNT(*) AS order_count,
-                    COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END), 0) AS revenue
-             FROM orders
-             WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH)
-             GROUP BY YEAR(created_at), MONTH(created_at), DATE_FORMAT(created_at, '%b')
-             ORDER BY YEAR(created_at), MONTH(created_at)"
-        )->fetchAll();
-
-        $categoryBreakdown = $pdo->query(
-            'SELECT c.name, c.category_key, COUNT(p.id) AS product_count,
-                    SUM(CASE WHEN p.is_sale = 1 THEN 1 ELSE 0 END) AS offer_count
-             FROM categories c
-             LEFT JOIN products p ON p.category_key = c.category_key
-             GROUP BY c.id, c.name, c.category_key
-             ORDER BY product_count DESC, c.sort_order ASC'
-        )->fetchAll();
-
-        $offerRows = $pdo->query(
-            'SELECT id, name, product_code, price, original_price, offer_ends_at
-             FROM products
-             WHERE is_sale = 1
-             ORDER BY offer_ends_at IS NULL ASC, offer_ends_at ASC, updated_at DESC
-             LIMIT 5'
-        )->fetchAll();
+        $pdo = Database::connection();
+        $totals = [
+            'orders' => Order::counts()['total'],
+            'customers' => (int) $pdo->query('SELECT COUNT(*) FROM customers')->fetchColumn(),
+            'pending' => Order::counts()['pending'],
+            'revenue' => (float) $pdo->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status <> 'cancelled'")->fetchColumn(),
+        ];
 
         View::render('admin.dashboard', [
             'pageTitle' => 'Dashboard',
             'activeNav' => 'dashboard',
-            'stats' => $stats,
-            'recentOrders' => Order::recent(8),
-            'trendRows' => $trendRows,
-            'categoryBreakdown' => $categoryBreakdown,
-            'offerRows' => $offerRows,
+            'range' => $range,
+            'kpis' => $kpis,
+            'totals' => $totals,
+            'recentOrders' => Order::recent(30),
         ]);
+    }
+
+    /**
+     * Current-period value, previous-period value, % change and one point per
+     * day (for the sparkline) for an aggregate query with :from/:to bounds.
+     */
+    private function metric(string $sql, int $days): array
+    {
+        $stmt = Database::connection()->prepare($sql);
+        $run = function (string $from, string $to) use ($stmt): float {
+            $stmt->execute(['from' => $from, 'to' => $to]);
+            return (float) $stmt->fetchColumn();
+        };
+
+        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+        $start = date('Y-m-d', strtotime('-' . ($days - 1) . ' days'));
+        $prevStart = date('Y-m-d', strtotime('-' . (2 * $days - 1) . ' days'));
+
+        $current = $run($start, $tomorrow);
+        $previous = $run($prevStart, $start);
+        $change = $previous > 0 ? round((($current - $previous) / $previous) * 100) : ($current > 0 ? 100 : 0);
+
+        $series = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $day = date('Y-m-d', strtotime("-{$i} days"));
+            $series[] = $run($day, date('Y-m-d', strtotime($day . ' +1 day')));
+        }
+
+        return ['current' => $current, 'previous' => $previous, 'change' => (int) $change, 'series' => $series];
     }
 }

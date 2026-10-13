@@ -1,7 +1,7 @@
 <?php
 /**
  * Mirrors src/components/ProductCard.tsx
- * Hover zoom / image swap / wishlist toggle / add-to-cart / buy-now handled
+ * Hover zoom / image swap / wishlist toggle / WhatsApp CTA handled
  * client-side in assets/js/app.js (delegated listeners keyed off data-* attrs).
  */
 
@@ -16,15 +16,19 @@ function renderProductCard(array $product, string $currency, bool $isWishlisted)
     $img1 = e(imageUrl($images[1] ?? ($images[0] ?? $fallbackImage)));
     $wishClasses = $isWishlisted ? 'is-active' : '';
     $heartFill = $isWishlisted ? 'currentColor' : 'none';
+    $isOutOfStock = empty($product['inStock']);
 
     ob_start();
     ?>
-    <div class="product-card group" data-product-id="<?= e($product['id']) ?>">
+    <div class="product-card group<?= $isOutOfStock ? ' is-out-of-stock' : '' ?>" data-product-id="<?= e($product['id']) ?>" data-in-stock="<?= $isOutOfStock ? '0' : '1' ?>">
       <div>
         <div class="product-card-image-wrap" data-quickview-trigger data-product-id="<?= e($product['id']) ?>">
           <img src="<?= $img0 ?>" data-primary="<?= $img0 ?>" data-secondary="<?= $img1 ?>" alt="<?= e($product['name']) ?>" class="product-card-img w-full h-full object-cover object-center transition-transform duration-200 ease-out pointer-events-none scale-100" />
 
           <div class="product-card-badges">
+            <?php if ($isOutOfStock): ?>
+              <span class="product-card-badge-outofstock">OUT OF STOCK</span>
+            <?php endif; ?>
             <?php if (!empty($product['isNew'])): ?>
               <span>NEW</span>
             <?php endif; ?>
@@ -60,14 +64,21 @@ function renderProductCard(array $product, string $currency, bool $isWishlisted)
       </div>
 
       <div class="product-card-actions">
-        <button data-buy-now data-product-id="<?= e($product['id']) ?>" class="product-buy-btn">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
-          <span>BUY NOW</span>
+        <button data-quickview-trigger data-product-id="<?= e($product['id']) ?>" class="product-details-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>DETAILS</span>
         </button>
-        <button data-quick-add data-product-id="<?= e($product['id']) ?>" class="product-cart-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-          <span>ADD TO CART</span>
-        </button>
+        <?php if ($isOutOfStock): ?>
+          <span class="product-whatsapp-btn" style="opacity:.5;pointer-events:none;cursor:not-allowed;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+            <span>OUT OF STOCK</span>
+          </span>
+        <?php else: ?>
+          <a href="<?= e(whatsappProductUrl($product, $currency)) ?>" target="_blank" rel="noopener" data-whatsapp-product data-product-id="<?= e($product['id']) ?>" class="product-whatsapp-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+            <span>WHATSAPP</span>
+          </a>
+        <?php endif; ?>
       </div>
     </div>
     <?php

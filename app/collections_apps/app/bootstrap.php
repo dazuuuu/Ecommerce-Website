@@ -7,9 +7,12 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 require __DIR__ . '/Helpers/functions.php';
 
-App\Core\Env::load();
+// Shown to admins in place of individual migration names when an update is available.
+const APP_VERSION = '2.0';
+
+date_default_timezone_set('Africa/Nairobi');
 App\Core\PathHandler::init();
 App\Core\Url::init();
 
 error_reporting(E_ALL);
-ini_set('display_errors', App\Core\Env::get('APP_DEBUG', '1') === '1' ? '1' : '0');
+ini_set('display_errors', '1');

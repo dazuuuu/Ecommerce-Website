@@ -100,6 +100,7 @@ class OrderController
 
             foreach ($lineItems as $li) {
                 OrderItem::create($orderId, $li);
+                Product::recordSale((int) $li['product_id'], (int) $li['quantity']);
             }
 
             $pdo->commit();

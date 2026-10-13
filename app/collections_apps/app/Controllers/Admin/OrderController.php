@@ -12,10 +12,19 @@ class OrderController extends BaseAdminController
     public function index(): void
     {
         $status = (string) Request::query('status', '');
+        $search = trim((string) Request::query('q', ''));
+        $orders = Order::all($status ?: null);
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            $orders = array_values(array_filter($orders, function (array $o) use ($needle): bool {
+                $haystack = implode(' ', [$o['order_ref'] ?? '', $o['first_name'] ?? '', $o['last_name'] ?? '', $o['email'] ?? '', $o['phone'] ?? '']);
+                return str_contains(mb_strtolower($haystack), $needle);
+            }));
+        }
         View::render('admin.orders.index', [
             'pageTitle' => 'Orders',
             'activeNav' => 'orders',
-            'orders' => Order::all($status ?: null),
+            'orders' => $orders,
             'statuses' => Order::STATUSES,
             'statusFilter' => $status,
         ]);

@@ -21,9 +21,35 @@
   var REVIEWS = DATA.reviews;
   var GALLERY_ITEMS = DATA.galleryItems || [];
   var BASE_URL = (DATA.baseUrl || '/').replace(/\/$/, '');
+  var WHATSAPP_NUMBER = String(DATA.whatsappNumber || '').replace(/\D+/g, '');
 
   function siteUrl(path) {
     return BASE_URL + '/' + String(path || '').replace(/^\//, '');
+  }
+
+  function productUrl(product) {
+    return siteUrl('product/' + encodeURIComponent(product.id));
+  }
+
+  function whatsappProductUrl(product, quantity, color, size) {
+    if (!WHATSAPP_NUMBER || !product) return '#';
+    var details = [
+      'Hello, I am interested in this product:',
+      'Product: ' + (product.name || ''),
+      'Code: ' + (product.id || ''),
+      'Price: ' + formatPrice(product.price || 0, state.currency),
+      'Quantity: ' + Math.max(1, quantity || 1),
+    ];
+    if (color && color.name) details.push('Color: ' + color.name);
+    if (size) details.push('Size: ' + size);
+    details.push('Link: ' + productUrl(product));
+    return 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(details.join('\n'));
+  }
+
+  function openWhatsAppForProduct(product, quantity, color, size) {
+    var url = whatsappProductUrl(product, quantity, color, size);
+    if (url === '#') return;
+    window.open(url, '_blank', 'noopener');
   }
 
   // Product/category images are either an absolute seed URL or an uploaded
@@ -65,6 +91,7 @@
     shoppingBag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
     shoppingCart: '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
     trash2: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+    messageCircle: '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>',
     arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
     sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
     tag: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>',
@@ -409,9 +436,13 @@
           '<div class="product-card-body">' +
             '<div class="product-card-title-row">' +
               '<h3 data-quickview-trigger data-product-id="' + esc(product.id) + '">' + esc(product.name) + '</h3>' +
+              '<div class="product-card-icon-btns">' +
+              '<button data-share-product data-product-id="' + esc(product.id) + '" class="wishlist-btn" aria-label="Share this product" title="Share">' +
+                '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>' +
+              '</button>' +
               '<button data-wishlist-toggle data-product-id="' + esc(product.id) + '" class="wishlist-btn' + wishClasses + '" aria-label="Wishlist">' +
                 icon('heart', '', isWishlisted ? 'currentColor' : 'none') +
-              '</button></div>' +
+              '</button></div></div>' +
             '<div class="product-card-price-row">' +
               '<span class="product-card-price">' + esc(formattedPrice) + '</span>' +
               (formattedOriginal ? '<span class="product-card-original-price">' + esc(formattedOriginal) + '</span>' : '') +
@@ -419,10 +450,10 @@
           '</div>' +
         '</div>' +
         '<div class="product-card-actions">' +
-          '<button data-buy-now data-product-id="' + esc(product.id) + '" class="product-buy-btn">' +
-            icon('zap', '') + '<span>BUY NOW</span></button>' +
-          '<button data-quick-add data-product-id="' + esc(product.id) + '" class="product-cart-btn">' +
-            icon('shoppingCart', '') + '<span>ADD TO CART</span></button>' +
+          '<button data-quickview-trigger data-product-id="' + esc(product.id) + '" class="product-details-btn">' +
+            icon('eye', '') + '<span>DETAILS</span></button>' +
+          '<a href="' + esc(whatsappProductUrl(product, 1)) + '" target="_blank" rel="noopener" data-whatsapp-product data-product-id="' + esc(product.id) + '" class="product-whatsapp-btn">' +
+            icon('messageCircle', '') + '<span>WHATSAPP</span></a>' +
         '</div>' +
       '</div>'
     );
@@ -561,6 +592,47 @@
 
   function defaultProductSize(product) {
     return (product.sizes && product.sizes[0]) || 'One Size';
+  }
+
+  function productCategoryKeys(product) {
+    var keys = Array.isArray(product.categories) ? product.categories.slice() : [];
+    if (product.category) keys.push(product.category);
+    return keys.filter(Boolean);
+  }
+
+  function productsShareCategory(a, b) {
+    var aKeys = productCategoryKeys(a);
+    var bKeys = productCategoryKeys(b);
+    return aKeys.some(function (key) { return bKeys.indexOf(key) !== -1; });
+  }
+
+  function recommendedProducts(product, limit) {
+    limit = limit || 4;
+    var price = Number(product.price || 0);
+    return PRODUCTS.filter(function (candidate) {
+      return candidate.id !== product.id;
+    }).map(function (candidate) {
+      var candidatePrice = Number(candidate.price || 0);
+      var sameCategory = productsShareCategory(product, candidate);
+      var priceGap = Math.abs(candidatePrice - price);
+      var withinRange = price > 0 ? priceGap <= Math.max(20, price * 0.3) : false;
+      var score = (sameCategory ? 1000 : 0) + (withinRange ? 500 : 0) - priceGap;
+      return { product: candidate, score: score, sameCategory: sameCategory, withinRange: withinRange };
+    }).filter(function (item) {
+      return item.sameCategory || item.withinRange;
+    }).sort(function (a, b) {
+      return b.score - a.score;
+    }).slice(0, limit).map(function (item) {
+      return item.product;
+    });
+  }
+
+  function renderRecommendationCard(product) {
+    return '<button data-recommendation-product data-product-id="' + esc(product.id) + '" class="qv-recommendation-card">' +
+      '<img src="' + esc(imgUrl(product.images[0])) + '" alt="' + esc(product.name) + '" />' +
+      '<span>' + esc(product.name) + '</span>' +
+      '<strong>' + esc(formatPrice(product.price || 0, state.currency)) + '</strong>' +
+      '</button>';
   }
 
   function addToCart(productId, color, size, qty) {
@@ -790,6 +862,33 @@
   // ---------------------------------------------------------------------
   var qvState = null;
 
+  // The /product/{code} page carries the product's og:image (featured image),
+  // the store logo and its description, so link previews render from that URL.
+  function shareProduct(product, btn) {
+    var url = productUrl(product);
+    var text = product.subtitle || product.name;
+    if (navigator.share) {
+      navigator.share({ title: product.name, text: text, url: url }).catch(function () {});
+      return;
+    }
+    var label = btn.querySelector('[data-qv-share-label]');
+    var done = function () {
+      if (!label) {
+        btn.title = 'Link copied';
+        btn.classList.add('is-active');
+        setTimeout(function () { btn.title = 'Share'; btn.classList.remove('is-active'); }, 1800);
+        return;
+      }
+      label.textContent = 'Link copied';
+      setTimeout(function () { label.textContent = 'Share'; }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link:', url); });
+    } else {
+      window.prompt('Copy this link:', url);
+    }
+  }
+
   function openQuickView(productId) {
     var product = findProduct(productId);
     if (!product) return;
@@ -811,6 +910,18 @@
     var formattedPrice = formatPrice(product.price, state.currency);
     var formattedOriginal = product.originalPrice ? formatPrice(product.originalPrice, state.currency) : null;
     var isWishlisted = state.wishlist.indexOf(product.id) !== -1;
+    var recommendations = recommendedProducts(product, 4);
+    var categoryLabel = product.subCategory || product.occasionLabel || product.category || 'Product';
+    var descriptionHTML = product.description
+      ? '<p class="qv-description">' + esc(product.description) + '</p>'
+      : '<p class="qv-description qv-description-muted">No description has been added for this product yet. Use WhatsApp to ask for fabric, dimensions, availability, or more views.</p>';
+    var overviewHTML =
+      '<div class="qv-overview-grid">' +
+        '<div class="qv-overview-card">' + icon('tag', 'w-4 h-4') + '<span>Code</span><strong>' + esc(product.id) + '</strong></div>' +
+        '<div class="qv-overview-card">' + icon('checkCircle', 'w-4 h-4') + '<span>Status</span><strong>' + (product.inStock ? 'In stock' : 'Pre-order') + '</strong></div>' +
+        '<div class="qv-overview-card">' + icon('truck', 'w-4 h-4') + '<span>Delivery</span><strong>Express</strong></div>' +
+        '<div class="qv-overview-card">' + icon('messageCircle', 'w-4 h-4') + '<span>Order via</span><strong>WhatsApp</strong></div>' +
+      '</div>';
 
     var thumbsHTML = product.images.length > 1
       ? '<div class="flex gap-2 overflow-x-auto pb-1">' + product.images.map(function (img, idx) {
@@ -827,25 +938,59 @@
       ? '<div class="mt-4"><div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider mb-2"><span>Option: <span class="text-neutral-600 font-normal">' + esc(qvState.selectedColor.name) + '</span></span></div>' +
         '<div class="flex flex-wrap gap-2">' + colorsHTML + '</div></div>'
       : '';
+    var sizesHTML = product.sizes && product.sizes.length
+      ? '<div class="mt-4"><p class="text-xs font-bold uppercase tracking-wider mb-2 text-neutral-800">Available Sizes</p><div class="flex flex-wrap gap-2">' +
+        product.sizes.map(function (size) {
+          var active = qvState.selectedSize === size;
+          return '<button data-qv-size="' + esc(size) + '" class="px-3 py-1.5 rounded-md border text-xs cursor-pointer ' + (active ? 'border-black bg-[#0a0a0a] text-white font-bold' : 'border-neutral-300 bg-white text-neutral-800 hover:border-neutral-400') + '">' + esc(size) + '</button>';
+        }).join('') + '</div></div>'
+      : '';
+    var detailItems = Array.isArray(product.details) ? product.details.filter(Boolean) : [];
+    var detailListHTML = detailItems.length
+      ? '<div class="mt-4"><p class="text-xs font-bold uppercase tracking-wider mb-2 text-neutral-800">More Details</p><ul class="space-y-1.5 text-xs text-neutral-600 leading-relaxed">' +
+        detailItems.map(function (detail) { return '<li class="flex gap-2"><span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-900"></span><span>' + esc(detail) + '</span></li>'; }).join('') +
+        '</ul></div>'
+      : '';
+    var metaRows = [
+      product.fabric ? ['Materials', product.fabric] : null,
+      product.fit ? ['Specification', product.fit] : null,
+    ].filter(Boolean);
+    var metaHTML = metaRows.length
+      ? '<div class="mt-4 space-y-1 text-xs text-neutral-600 font-light bg-neutral-100 p-3 rounded-lg">' +
+        metaRows.map(function (row) { return '<p><strong class="font-semibold text-neutral-800">' + esc(row[0]) + ':</strong> ' + esc(row[1]) + '</p>'; }).join('') +
+        '</div>'
+      : '';
+    var recommendationsHTML = recommendations.length
+      ? '<div class="qv-recommendations"><div class="qv-recommendations-head"><span>Recommended</span><small>Same category or similar price</small></div><div class="qv-recommendations-grid">' +
+        recommendations.map(renderRecommendationCard).join('') +
+        '</div></div>'
+      : '';
+    var whatsappHref = whatsappProductUrl(product, qvState.quantity, qvState.selectedColor, qvState.selectedSize);
+    var sideWhatsAppHTML = WHATSAPP_NUMBER
+      ? '<a href="' + esc(whatsappHref) + '" target="_blank" rel="noopener" data-qv-whatsapp class="qv-side-whatsapp" aria-label="Chat on WhatsApp">' + icon('messageCircle', 'w-5 h-5') + '<span>WhatsApp</span></a>'
+      : '';
 
     root.innerHTML =
       '<div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">' +
       '<div class="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity" data-close-qv></div>' +
-      '<div class="relative w-full max-w-4xl bg-white rounded-xl shadow-2xl z-10 overflow-hidden border border-neutral-300 my-6">' +
-      '<button data-close-qv class="absolute top-4 right-4 z-20 p-2 bg-[#0a0a0a]/80 hover:bg-[#0a0a0a] text-white rounded-full transition-colors shadow-md cursor-pointer border border-neutral-400/30" aria-label="Close modal">' + icon('x', 'w-5 h-5') + '</button>' +
-      '<div class="grid grid-cols-1 md:grid-cols-2">' +
-      '<div class="p-6 bg-neutral-50 flex flex-col justify-between">' +
-      '<div class="relative aspect-[4/3] sm:aspect-[3/4] w-full rounded-lg overflow-hidden mb-4 bg-white shadow-xs border border-neutral-200">' +
+      '<div class="qv-shell relative w-full max-w-5xl bg-white rounded-xl shadow-2xl z-10 overflow-hidden border border-neutral-300 my-6">' +
+      '<button data-close-qv class="qv-close-btn absolute top-4 right-4 z-20" aria-label="Close modal">' + icon('x', 'w-5 h-5') + '</button>' +
+      sideWhatsAppHTML +
+      '<div class="qv-layout">' +
+      '<div class="qv-media-panel">' +
+      '<div class="qv-main-image">' +
       '<img src="' + esc(imgUrl(product.images[qvState.selectedImg] || product.images[0])) + '" alt="' + esc(product.name) + '" class="w-full h-full object-cover object-center" />' +
       '<button data-qv-wishlist class="absolute top-3 right-3 p-2.5 rounded-full backdrop-blur-md transition-colors cursor-pointer shadow-md ' + (isWishlisted ? 'bg-rose-600 text-white' : 'bg-white/90 text-neutral-800 hover:bg-white') + '">' +
-      icon('heart', 'w-5 h-5 ' + (isWishlisted ? 'fill-rose-600 text-rose-600' : ''), isWishlisted ? 'currentColor' : 'none') + '</button></div>' +
+      icon('heart', 'w-5 h-5 ' + (isWishlisted ? 'fill-rose-600 text-rose-600' : ''), isWishlisted ? 'currentColor' : 'none') + '</button>' +
+      '<button data-qv-share class="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/90 hover:bg-white text-neutral-800 text-xs font-bold backdrop-blur-md shadow-md cursor-pointer" aria-label="Share this product">' +
+      '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg><span data-qv-share-label>Share</span></button></div>' +
       thumbsHTML +
       '</div>' +
-      '<div class="p-6 sm:p-8 flex flex-col justify-between space-y-5">' +
+      '<div class="qv-info-panel">' +
       '<div>' +
       '<div class="flex items-center justify-between text-xs text-neutral-500 uppercase tracking-widest font-semibold mb-1">' +
-      '<span>' + esc(product.subCategory) + '</span>' +
-      '<span class="text-neutral-800 bg-neutral-100 px-2 py-0.5 rounded-md font-bold text-[10px]">' + (product.inStock ? 'IN STOCK • EXPRESS DISPATCH' : 'PRE-ORDER') + '</span>' +
+      '<span>' + esc(categoryLabel) + '</span>' +
+      '<span class="qv-stock-pill">' + (product.inStock ? 'IN STOCK' : 'PRE-ORDER') + '</span>' +
       '</div>' +
       '<h2 class="font-serif-heading text-xl sm:text-2xl font-bold text-[#0a0a0a]">' + esc(product.name) + '</h2>' +
       '<div class="flex items-center space-x-3 mt-2"><div class="flex items-center text-neutral-500">' + icon('star', 'w-4 h-4 fill-neutral-700 text-white', 'currentColor') +
@@ -853,22 +998,25 @@
       '<span class="text-neutral-300">•</span><span class="text-xs text-neutral-500">' + esc(product.subtitle) + '</span></div>' +
       '<div class="flex items-baseline space-x-3 mt-3"><span class="text-2xl font-bold text-[#8b1c1c]">' + esc(formattedPrice) + '</span>' +
       (formattedOriginal ? '<span class="text-sm text-neutral-400 line-through font-normal">' + esc(formattedOriginal) + '</span>' : '') + '</div>' +
-      '<p class="text-xs text-neutral-600 font-light leading-relaxed mt-3 border-t border-b border-neutral-200/80 py-3">' + esc(product.description) + '</p>' +
+      descriptionHTML +
+      overviewHTML +
       colorOptionsHTML +
-      '<div class="mt-4 space-y-1 text-xs text-neutral-600 font-light bg-neutral-100 p-3 rounded-lg">' +
-      '<p><strong class="font-semibold text-neutral-800">Materials:</strong> ' + esc(product.fabric) + '</p>' +
-      '<p><strong class="font-semibold text-neutral-800">Specification:</strong> ' + esc(product.fit) + '</p></div>' +
+      sizesHTML +
+      metaHTML +
+      detailListHTML +
+      recommendationsHTML +
       '</div>' +
-      '<div class="space-y-3 pt-3 border-t border-neutral-200">' +
+      '<div class="qv-action-panel">' +
       '<div class="flex items-center space-x-3">' +
-      '<div class="flex items-center border border-neutral-300 rounded-lg bg-white">' +
-      '<button data-qv-qty-down class="px-3 py-2 text-sm text-neutral-600 hover:text-black font-bold cursor-pointer">-</button>' +
-      '<span class="px-3 py-2 text-xs font-bold min-w-[32px] text-center">' + qvState.quantity + '</span>' +
-      '<button data-qv-qty-up class="px-3 py-2 text-sm text-neutral-600 hover:text-black font-bold cursor-pointer">+</button></div>' +
-      '<button data-qv-add class="flex-1 bg-[#0a0a0a] hover:bg-black text-white py-3 px-6 text-xs font-bold tracking-widest uppercase rounded-lg transition-colors flex items-center justify-center space-x-2 cursor-pointer shadow-md border border-neutral-400/30">' +
-      icon('shoppingBag', 'w-4 h-4 text-white') + '<span>ADD TO CART</span></button>' +
+      (product.inStock
+        ? '<div class="flex items-center border border-neutral-300 rounded-lg bg-white">' +
+          '<button data-qv-qty-down class="px-3 py-2 text-sm text-neutral-600 hover:text-black font-bold cursor-pointer">-</button>' +
+          '<span class="px-3 py-2 text-xs font-bold min-w-[32px] text-center">' + qvState.quantity + '</span>' +
+          '<button data-qv-qty-up class="px-3 py-2 text-sm text-neutral-600 hover:text-black font-bold cursor-pointer">+</button></div>' +
+          '<a href="' + esc(whatsappProductUrl(product, qvState.quantity, qvState.selectedColor, qvState.selectedSize)) + '" target="_blank" rel="noopener" data-qv-whatsapp class="flex-1 bg-[#0a0a0a] hover:bg-black text-white py-3 px-6 text-xs font-bold tracking-widest uppercase rounded-lg transition-colors flex items-center justify-center space-x-2 cursor-pointer shadow-md border border-neutral-400/30">' +
+          icon('messageCircle', 'w-4 h-4 text-white') + '<span>WHATSAPP</span></a>'
+        : '<button disabled class="flex-1 bg-neutral-200 text-neutral-500 py-3 px-6 text-xs font-bold tracking-widest uppercase rounded-lg cursor-not-allowed border border-neutral-300">Out of Stock</button>') +
       '</div>' +
-      (qvState.addedToast ? '<div class="bg-black text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center space-x-2 border border-neutral-400/30">' + icon('check', 'w-4 h-4 text-white') + '<span>Item added to your Cart!</span></div>' : '') +
       '<div class="grid grid-cols-3 gap-2 text-[10px] text-neutral-500 text-center pt-1">' +
       '<div class="flex items-center justify-center space-x-1">' + icon('truck', 'w-3.5 h-3.5 text-neutral-700') + '<span>Express Delivery</span></div>' +
       '<div class="flex items-center justify-center space-x-1">' + icon('rotateCcw', 'w-3.5 h-3.5 text-neutral-700') + '<span>30-Day Returns</span></div>' +
@@ -886,18 +1034,40 @@
         renderQuickView();
       });
     });
+    root.querySelectorAll('[data-qv-size]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        qvState.selectedSize = el.getAttribute('data-qv-size');
+        renderQuickView();
+      });
+    });
     var wishBtn = root.querySelector('[data-qv-wishlist]');
     if (wishBtn) wishBtn.addEventListener('click', function () { toggleWishlist(product.id); renderQuickView(); });
+    var shareBtn = root.querySelector('[data-qv-share]');
+    if (shareBtn) shareBtn.addEventListener('click', function () { shareProduct(product, shareBtn); });
     var qtyDown = root.querySelector('[data-qv-qty-down]');
     if (qtyDown) qtyDown.addEventListener('click', function () { qvState.quantity = Math.max(1, qvState.quantity - 1); renderQuickView(); });
     var qtyUp = root.querySelector('[data-qv-qty-up]');
     if (qtyUp) qtyUp.addEventListener('click', function () { qvState.quantity++; renderQuickView(); });
-    var addBtn = root.querySelector('[data-qv-add]');
-    if (addBtn) addBtn.addEventListener('click', function () {
-      addToCart(product.id, qvState.selectedColor, qvState.selectedSize, qvState.quantity);
-      qvState.addedToast = true;
-      renderQuickView();
-      setTimeout(function () { if (qvState) { qvState.addedToast = false; renderQuickView(); } }, 2500);
+    root.querySelectorAll('[data-qv-whatsapp]').forEach(function (whatsappBtn) {
+      whatsappBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        openWhatsAppForProduct(product, qvState.quantity, qvState.selectedColor, qvState.selectedSize);
+      });
+    });
+    root.querySelectorAll('[data-recommendation-product]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var nextProduct = findProduct(el.getAttribute('data-product-id'));
+        if (!nextProduct) return;
+        qvState = {
+          productId: nextProduct.id,
+          selectedImg: 0,
+          selectedColor: defaultProductColor(nextProduct),
+          selectedSize: defaultProductSize(nextProduct),
+          quantity: 1,
+          addedToast: false
+        };
+        renderQuickView();
+      });
     });
   }
 
@@ -1328,27 +1498,34 @@
       var wish = e.target.closest('[data-wishlist-toggle]');
       if (wish) { toggleWishlist(wish.getAttribute('data-product-id')); return; }
 
-      var buyNow = e.target.closest('[data-buy-now]');
-      if (buyNow) {
-        var pid1 = buyNow.getAttribute('data-product-id');
-        var p1 = findProduct(pid1);
-        addToCart(pid1, defaultProductColor(p1), defaultProductSize(p1), 1);
-        openCheckoutModal();
+      var share = e.target.closest('[data-share-product]');
+      if (share) {
+        var sharedProduct = findProduct(share.getAttribute('data-product-id'));
+        if (sharedProduct) shareProduct(sharedProduct, share);
         return;
       }
 
-      var quickAdd = e.target.closest('[data-quick-add]');
-      if (quickAdd) {
-        var pid2 = quickAdd.getAttribute('data-product-id');
+      var whatsappProduct = e.target.closest('[data-whatsapp-product]');
+      if (whatsappProduct) {
+        e.preventDefault();
+        var pid2 = whatsappProduct.getAttribute('data-product-id');
         var p2 = findProduct(pid2);
-        addToCart(pid2, defaultProductColor(p2), defaultProductSize(p2), 1);
-        openCartDrawer();
+        openWhatsAppForProduct(p2, 1);
         return;
       }
 
       var catBtn = e.target.closest('[data-select-category]');
       if (catBtn) {
         var cat = catBtn.getAttribute('data-select-category');
+        var isRealCategory = CATEGORIES.some(function (c) { return c.id === cat; });
+        if (isRealCategory && DATA.focusCategoryKey !== cat) {
+          window.location.href = BASE_URL + '/category/' + encodeURIComponent(cat);
+          return;
+        }
+        if (DATA.focusCategoryKey && cat !== DATA.focusCategoryKey) {
+          window.location.href = BASE_URL + '/' + (cat === 'all' ? '' : '?browse=' + encodeURIComponent(cat));
+          return;
+        }
         selectCategory(cat);
         if (window.__closeMobileMenu) window.__closeMobileMenu();
         if (cat !== 'all') document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
@@ -1372,12 +1549,118 @@
     });
   }
 
+  function initFloatingWhatsApp() {
+    var root = document.getElementById('floating-whatsapp-root');
+    if (!root || !WHATSAPP_NUMBER) return;
+    var message = encodeURIComponent('Hello, I would like help choosing a product from Pentagon Collections.');
+    root.innerHTML = '<a href="https://wa.me/' + esc(WHATSAPP_NUMBER) + '?text=' + message + '" target="_blank" rel="noopener" class="floating-whatsapp" aria-label="Chat on WhatsApp">' +
+      icon('messageCircle', 'w-6 h-6') +
+      '<span>WhatsApp</span>' +
+      '</a>';
+  }
+
+  // ---------------------------------------------------------------------
+  // Ad popup — shows on every page load while the ad is live, closes on X,
+  // and removes itself for good once the ad's end time passes.
+  // ---------------------------------------------------------------------
+  function initAdPopup() {
+    var ad = DATA.ad;
+    if (!ad) return;
+    var skew = Date.now() - ad.serverNowMs;
+    function serverNow() { return Date.now() - skew; }
+    if (serverNow() >= ad.endsAtMs) return;
+
+    var root = document.getElementById('ad-popup-root');
+    if (!root) {
+      root = document.createElement('div');
+      root.id = 'ad-popup-root';
+      document.body.appendChild(root);
+    }
+
+    var media = '';
+    if (ad.mediaUrl && ad.mediaType === 'video') {
+      media = '<div class="ad-popup-media"><video src="' + esc(ad.mediaUrl) + '" autoplay muted loop playsinline></video></div>';
+    } else if (ad.mediaUrl) {
+      media = '<div class="ad-popup-media"><img src="' + esc(ad.mediaUrl) + '" alt="' + esc(ad.title) + '" /></div>';
+    }
+    var isInternal = ad.linkUrl && ad.linkUrl.charAt(0) === '/';
+    var href = ad.linkUrl ? (isInternal ? BASE_URL + ad.linkUrl : ad.linkUrl) : '';
+    root.innerHTML =
+      '<div class="ad-popup-backdrop" data-ad-close></div>' +
+      '<div class="ad-popup" role="dialog" aria-modal="true" aria-label="' + esc(ad.title) + '">' +
+      '<button type="button" class="ad-popup-close" data-ad-close aria-label="Close ad">&times;</button>' +
+      media +
+      '<div class="ad-popup-body">' +
+      (ad.badge ? '<span class="ad-popup-badge">' + esc(ad.badge) + '</span>' : '') +
+      '<h2 class="ad-popup-title">' + esc(ad.title) + '</h2>' +
+      (ad.description ? '<p class="ad-popup-desc">' + esc(ad.description) + '</p>' : '') +
+      (ad.countdownToMs ? '<div class="ad-popup-countdown"><span>' + esc(ad.countdownLabel) + '</span><strong id="ad-countdown">--</strong></div>' : '') +
+      (href ? '<a class="ad-popup-cta" href="' + esc(href) + '"' + (isInternal ? '' : ' target="_blank" rel="noopener"') + '>' + esc(ad.ctaLabel) + '</a>' : '') +
+      '</div></div>';
+
+    var timer = null;
+    function close() {
+      if (timer) clearInterval(timer);
+      root.innerHTML = '';
+    }
+    root.addEventListener('click', function (e) {
+      if (e.target.closest('[data-ad-close]')) close();
+    });
+
+    function pad(n) { return n < 10 ? '0' + n : String(n); }
+    function tick() {
+      var now = serverNow();
+      if (now >= ad.endsAtMs) { close(); return; }
+      var el = document.getElementById('ad-countdown');
+      if (!el || !ad.countdownToMs) return;
+      var left = Math.max(0, ad.countdownToMs - now);
+      var d = Math.floor(left / 86400000);
+      var h = Math.floor(left % 86400000 / 3600000);
+      var m = Math.floor(left % 3600000 / 60000);
+      var sec = Math.floor(left % 60000 / 1000);
+      el.textContent = (d > 0 ? d + 'd ' : '') + pad(h) + ':' + pad(m) + ':' + pad(sec);
+    }
+    tick();
+    timer = setInterval(tick, 1000);
+  }
+
+  function initCategoryShare() {
+    var btn = document.getElementById('category-share-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var url = window.location.href;
+      var title = btn.getAttribute('data-share-title') || document.title;
+      if (navigator.share) {
+        navigator.share({ title: title, url: url }).catch(function () {});
+        return;
+      }
+      var done = function () {
+        var original = btn.textContent;
+        btn.textContent = 'Link copied';
+        setTimeout(function () { btn.textContent = original; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link:', url); });
+      } else {
+        window.prompt('Copy this link:', url);
+      }
+    });
+  }
+
   // ---------------------------------------------------------------------
   // Boot
   // ---------------------------------------------------------------------
   document.addEventListener('DOMContentLoaded', function () {
     initHeader();
+    if (DATA.focusCategoryKey) {
+      state.currentCategory = DATA.focusCategoryKey;
+    } else {
+      var browse = new URLSearchParams(window.location.search).get('browse');
+      if (browse) state.currentCategory = browse;
+    }
     setActiveNav(state.currentCategory);
+    initCategoryShare();
+    initAdPopup();
     if (document.getElementById('hero-data')) initHero();
     initOffersHero();
     initProductSection();
@@ -1385,7 +1668,11 @@
     if (document.getElementById('newsletter-form')) initNewsletter();
     initSizeGuide();
     initGlobalDelegation();
+    initFloatingWhatsApp();
     renderStaticCurrencyPrices();
+    if (DATA.focusProductCode) {
+      setTimeout(function () { openQuickView(DATA.focusProductCode); }, 0);
+    }
     trapEscape();
   });
 })();

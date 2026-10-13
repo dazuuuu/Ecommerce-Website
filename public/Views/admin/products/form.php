@@ -33,24 +33,57 @@ $isNewArrival = !empty($form['is_new']);
         <textarea name="description" rows="3" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black"><?= e($form['description']) ?></textarea>
       </div>
       <div class="col-span-2">
-        <label class="text-[11px] font-bold text-neutral-600 uppercase">Categories</label>
-        <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <?php foreach ($categories as $cat): ?>
-            <label class="flex items-center gap-2 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm text-neutral-700 cursor-pointer hover:border-black">
-              <input type="checkbox" name="category_keys[]" value="<?= e($cat['category_key']) ?>" <?= in_array($cat['category_key'], $selectedCategories, true) ? 'checked' : '' ?> class="w-4 h-4 accent-black" />
-              <span><?= e($cat['name']) ?></span>
-            </label>
-          <?php endforeach; ?>
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">More Details <span class="text-neutral-400 font-normal normal-case">(optional, one per line)</span></label>
+        <textarea name="details" rows="3" placeholder="Care instructions&#10;Included accessories&#10;Warranty or delivery notes" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm font-mono focus:outline-none focus:border-black"><?= e($form['details'] ?? '') ?></textarea>
+      </div>
+      <!-- Advanced Category Search & Multi-select -->
+      <div class="col-span-2 relative" id="category-search-widget">
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">Categories (Search & Auto-Suggest)</label>
+        
+        <!-- Selected Category Badges -->
+        <div id="category-badge-container" class="flex flex-wrap gap-2 my-2 min-h-[42px] p-2 bg-neutral-50 border border-neutral-200 rounded-xl items-center">
+          <!-- Populated by JS -->
         </div>
-        <p class="text-[11px] text-neutral-400 mt-1">Select one or more categories. The first selected category is used as the primary category.</p>
+
+        <!-- Hidden Inputs for Form Submission -->
+        <div id="category-hidden-inputs"></div>
+
+        <!-- Search Input -->
+        <div class="relative">
+          <input type="text" id="category-search-input" placeholder="Type category name to search & add..." class="w-full bg-white border border-neutral-300 rounded-xl p-2.5 pl-9 text-sm focus:outline-none focus:border-black transition-all" autocomplete="off" />
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+
+        <!-- Auto-Suggest Dropdown List -->
+        <div id="category-suggest-dropdown" class="absolute z-30 left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xl shadow-xl max-h-56 overflow-y-auto hidden divide-y divide-neutral-100">
+        </div>
+
+        <p class="text-[11px] text-neutral-400 mt-1.5">Type to filter and select multiple categories. The first selected category will be primary.</p>
       </div>
+
+      <!-- Price & Quantity -->
       <div>
-        <label class="text-[11px] font-bold text-neutral-600 uppercase">Base Price (USD)</label>
-        <input type="number" step="0.01" min="0.01" name="base_price" required value="<?= e($form['base_price'] ?? $form['price']) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-black" />
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">Base Price (KSH / Currency)</label>
+        <input type="number" step="0.01" min="0.01" name="base_price" required value="<?= e($form['base_price'] ?? $form['price']) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-xl p-2.5 text-sm focus:outline-none focus:border-black" />
       </div>
+
+      <div>
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">Stock Quantity</label>
+        <input type="number" step="1" min="0" name="quantity" required value="<?= e($form['quantity'] ?? 10) ?>" class="w-full mt-1 bg-white border border-neutral-300 rounded-xl p-2.5 text-sm font-bold focus:outline-none focus:border-black text-gray-900" placeholder="10" />
+        <p class="text-[11px] text-neutral-400 mt-1">Total items in stock. When quantity reaches 0, it automatically displays 'Out of Stock'.</p>
+      </div>
+
       <div>
         <label class="text-[11px] font-bold text-neutral-600 uppercase">Sizes <span class="text-neutral-400 font-normal normal-case">(optional, one per line)</span></label>
-        <textarea name="sizes" rows="3" placeholder="S&#10;M&#10;L" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm font-mono focus:outline-none focus:border-black"><?= e($form['sizes']) ?></textarea>
+        <textarea name="sizes" rows="3" placeholder="S&#10;M&#10;L" class="w-full mt-1 bg-white border border-neutral-300 rounded-xl p-2.5 text-sm font-mono focus:outline-none focus:border-black"><?= e($form['sizes']) ?></textarea>
+      </div>
+      <div>
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">Materials <span class="text-neutral-400 font-normal normal-case">(optional)</span></label>
+        <input type="text" name="fabric" value="<?= e($form['fabric'] ?? '') ?>" placeholder="Cotton, leather, stainless steel..." class="w-full mt-1 bg-white border border-neutral-300 rounded-xl p-2.5 text-sm focus:outline-none focus:border-black" />
+      </div>
+      <div>
+        <label class="text-[11px] font-bold text-neutral-600 uppercase">Specification <span class="text-neutral-400 font-normal normal-case">(optional)</span></label>
+        <input type="text" name="fit" value="<?= e($form['fit'] ?? '') ?>" placeholder="Fit, dimensions, capacity, finish..." class="w-full mt-1 bg-white border border-neutral-300 rounded-xl p-2.5 text-sm focus:outline-none focus:border-black" />
       </div>
     </div>
   </div>
@@ -121,8 +154,9 @@ $isNewArrival = !empty($form['is_new']);
       <p class="text-[11px] text-neutral-400 mt-1">This is the main thumbnail shown on the frontpage. JPG, PNG, WEBP or GIF, up to 8MB.</p>
     </div>
     <div>
-      <label class="text-[11px] font-bold text-neutral-600 uppercase">Gallery Images <span class="text-neutral-400 font-normal normal-case">(optional, upload more than one)</span></label>
+      <label class="text-[11px] font-bold text-neutral-600 uppercase">Product Gallery / Views <span class="text-neutral-400 font-normal normal-case">(optional, upload more than one)</span></label>
       <input type="file" name="gallery_images[]" accept="image/*" multiple class="w-full mt-1 text-sm" />
+      <p class="text-[11px] text-neutral-400 mt-1">Add alternate angles or close-up views. These appear in the product details gallery.</p>
     </div>
   </div>
 
@@ -168,6 +202,101 @@ $isNewArrival = !empty($form['is_new']);
         newArrivalFields.classList.toggle('hidden', !newArrivalToggle.checked);
       });
     }
+
+    var allCategories = <?= json_encode(array_map(fn($c) => ['key' => $c['category_key'], 'name' => $c['name']], $categories), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    var selectedKeys = <?= json_encode(array_values($selectedCategories), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+
+    var badgeContainer = document.getElementById('category-badge-container');
+    var hiddenInputs = document.getElementById('category-hidden-inputs');
+    var searchInput = document.getElementById('category-search-input');
+    var suggestDropdown = document.getElementById('category-suggest-dropdown');
+
+    function categoryName(key) {
+      var found = allCategories.find(function (c) { return c.key === key; });
+      return found ? found.name : key;
+    }
+
+    function renderCategories() {
+      badgeContainer.innerHTML = '';
+      hiddenInputs.innerHTML = '';
+      if (!selectedKeys.length) {
+        var empty = document.createElement('span');
+        empty.className = 'text-xs text-neutral-400';
+        empty.textContent = 'No categories selected yet.';
+        badgeContainer.appendChild(empty);
+      }
+      selectedKeys.forEach(function (key, idx) {
+        var badge = document.createElement('span');
+        badge.className = 'inline-flex items-center gap-1.5 bg-black text-white text-xs font-bold pl-3 pr-2 py-1.5 rounded-full';
+        badge.innerHTML = (idx === 0 ? '<span class="text-[9px] uppercase tracking-wide text-neutral-300 mr-1">Primary</span>' : '') +
+          '<span>' + categoryName(key).replace(/</g, '&lt;') + '</span>';
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'ml-1 text-neutral-300 hover:text-white';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.addEventListener('click', function () {
+          selectedKeys.splice(idx, 1);
+          renderCategories();
+        });
+        badge.appendChild(removeBtn);
+        badgeContainer.appendChild(badge);
+
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'category_keys[]';
+        hidden.value = key;
+        hiddenInputs.appendChild(hidden);
+      });
+    }
+
+    function renderSuggestions(term) {
+      var matches = allCategories.filter(function (c) {
+        return selectedKeys.indexOf(c.key) === -1 && c.name.toLowerCase().indexOf(term.toLowerCase()) !== -1;
+      });
+      suggestDropdown.innerHTML = '';
+      if (!term || !matches.length) {
+        suggestDropdown.classList.add('hidden');
+        return;
+      }
+      matches.slice(0, 8).forEach(function (c) {
+        var item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 flex items-center justify-between';
+        item.innerHTML = '<span>' + c.name.replace(/</g, '&lt;') + '</span>';
+        item.addEventListener('click', function () {
+          selectedKeys.push(c.key);
+          renderCategories();
+          searchInput.value = '';
+          suggestDropdown.classList.add('hidden');
+          searchInput.focus();
+        });
+        suggestDropdown.appendChild(item);
+      });
+      suggestDropdown.classList.remove('hidden');
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        renderSuggestions(searchInput.value.trim());
+      });
+      searchInput.addEventListener('focus', function () {
+        if (searchInput.value.trim()) renderSuggestions(searchInput.value.trim());
+      });
+      searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          var first = suggestDropdown.querySelector('button');
+          if (first) first.click();
+        }
+      });
+      document.addEventListener('click', function (e) {
+        if (!document.getElementById('category-search-widget').contains(e.target)) {
+          suggestDropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    renderCategories();
 
     var list = document.querySelector('[data-color-list]');
     var add = document.querySelector('[data-add-color]');

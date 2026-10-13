@@ -25,4 +25,22 @@ class Admin
             ->execute([$email, password_hash($password, PASSWORD_DEFAULT)]);
         return (int) $pdo->lastInsertId();
     }
+
+    public static function all(): array
+    {
+        return Database::connection()->query('SELECT id, email FROM admins ORDER BY id ASC')->fetchAll();
+    }
+
+    public static function findById(int $id): ?array
+    {
+        $stmt = Database::connection()->prepare('SELECT id, email FROM admins WHERE id = ?');
+        $stmt->execute([$id]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public static function delete(int $id): void
+    {
+        $stmt = Database::connection()->prepare('DELETE FROM admins WHERE id = ?');
+        $stmt->execute([$id]);
+    }
 }

@@ -70,7 +70,7 @@ class Product
     public static function notOnOffer(): array
     {
         self::expireMaturedOffers();
-        return Database::connection()->query('SELECT id, name, product_code, price FROM products WHERE is_sale = 0 ORDER BY name ASC')->fetchAll();
+        return Database::connection()->query('SELECT id, name, product_code, price, quantity FROM products WHERE is_sale = 0 ORDER BY name ASC')->fetchAll();
     }
 
     public static function activeOccasions(): array
@@ -148,9 +148,44 @@ class Product
             ->exec('UPDATE products SET is_new = 0, new_arrival_until = NULL WHERE is_new = 1 AND new_arrival_until IS NOT NULL AND new_arrival_until <= NOW()');
     }
 
+    public static function recordSale(int $id, int $qtySold): int
+    {
+        $pdo = Database::connection();
+        $stmt = $pdo->prepare('SELECT quantity, in_stock FROM products WHERE id = ?');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            return 0;
+        }
+        $currentQty = (int) $row['quantity'];
+        $newQty = max(0, $currentQty - $qtySold);
+        $inStock = $newQty > 0 ? 1 : 0;
+
+        $updateStmt = $pdo->prepare('UPDATE products SET quantity = ?, in_stock = ? WHERE id = ?');
+        $updateStmt->execute([$newQty, $inStock, $id]);
+        return $newQty;
+    }
+
+    public static function restock(int $id, int $qtyAdded): int
+    {
+        $pdo = Database::connection();
+        $stmt = $pdo->prepare('SELECT quantity FROM products WHERE id = ?');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            return 0;
+        }
+        $newQty = max(0, (int) $row['quantity']) + max(0, $qtyAdded);
+
+        $updateStmt = $pdo->prepare('UPDATE products SET quantity = ?, in_stock = 1 WHERE id = ?');
+        $updateStmt->execute([$newQty, $id]);
+        return $newQty;
+    }
+
     /** Converts a DB row into the shape storefront templates/JS expect. */
     public static function toArray(array $row): array
     {
+        $qty = (int) ($row['quantity'] ?? 0);
         return [
             'id' => $row['product_code'],
             'dbId' => (int) $row['id'],
@@ -178,7 +213,9 @@ class Product
             'isSale' => (bool) $row['is_sale'],
             'rating' => (float) $row['rating'],
             'reviewCount' => (int) $row['review_count'],
-            'inStock' => (bool) $row['in_stock'],
+            'updatedAt' => $row['updated_at'] ?? null,
+            'quantity' => $qty,
+            'inStock' => ((bool) $row['in_stock']) && ($qty > 0),
             'featuredInLookbook' => (bool) $row['featured_in_lookbook'],
         ];
     }

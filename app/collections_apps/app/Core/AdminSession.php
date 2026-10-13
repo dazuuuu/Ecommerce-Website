@@ -47,6 +47,11 @@ class AdminSession
         return ['id' => $_SESSION['admin_id'], 'email' => $_SESSION['admin_email']];
     }
 
+    public static function id(): ?int
+    {
+        return isset($_SESSION['admin_id']) ? (int) $_SESSION['admin_id'] : null;
+    }
+
     /** Redirects to the admin login route if no admin is signed in. */
     public static function require(): array
     {

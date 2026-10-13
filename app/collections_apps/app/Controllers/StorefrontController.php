@@ -8,8 +8,10 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\GalleryItem;
+use App\Models\Ad;
 use App\Models\Category;
 use App\Models\SeoMeta;
+use App\Services\FaviconService;
 
 class StorefrontController
 {
@@ -31,12 +33,17 @@ class StorefrontController
             View::render('storefront.404');
             return;
         }
+        // Description and image come from what the admin recorded on the product,
+        // unless a custom SEO entry overrides them at /admin/seo.
         $seo = SeoMeta::resolve(
             'product:' . $code,
-            $product['name'] . ' | Pentagon Collections',
-            $product['description'] ? mb_substr($product['description'], 0, 160) : $product['subtitle'],
+            $product['name'] . ' | ' . storeDisplayName(),
+            $product['description'] ?: ($product['subtitle'] ?: $product['name']),
             $product['images'][0] ?? null
         );
+        $seo['type'] = 'product';
+        $seo['product'] = $product;
+        $seo['path'] = '/product/' . rawurlencode($code);
         $this->renderPage($seo, ['product' => $code, 'category' => null]);
     }
 
@@ -48,13 +55,21 @@ class StorefrontController
             View::render('storefront.404');
             return;
         }
+        $productCount = count(array_filter(
+            Product::all(),
+            fn(array $p): bool => in_array($key, $p['categories'] ?? [], true) || $p['category'] === $key
+        ));
+        $fallbackDescription = !empty($category['tagline'])
+            ? $category['tagline']
+            : ('Shop ' . $category['name'] . ' at ' . storeDisplayName() . ' — ' . $productCount . ' ' . ($productCount === 1 ? 'product' : 'products') . ' available.');
         $seo = SeoMeta::resolve(
             'category:' . $key,
-            $category['name'] . ' | Pentagon Collections',
-            $category['tagline'] ?? ('Shop ' . $category['name'] . ' at Pentagon Collections.'),
+            $category['name'] . ' | ' . storeDisplayName(),
+            $fallbackDescription,
             $category['image']
         );
-        $this->renderPage($seo, ['product' => null, 'category' => $key]);
+        $seo['path'] = '/category/' . rawurlencode($key);
+        $this->renderPage($seo, ['product' => null, 'category' => $key], $category, $productCount);
     }
 
     public function trackOrder(): void
@@ -95,7 +110,106 @@ class StorefrontController
         ]);
     }
 
-    private function renderPage(array $seo, array $focus): void
+    public function favicon(): void
+    {
+        $file = FaviconService::ensure(storeLogoPath()) ? FaviconService::icoFile() : null;
+        if (!$file) {
+            http_response_code(404);
+            return;
+        }
+        header('Content-Type: image/x-icon');
+        header('Cache-Control: public, max-age=86400');
+        readfile($file);
+    }
+
+    public function manifest(): void
+    {
+        $icons = FaviconService::ensure(storeLogoPath());
+        header('Content-Type: application/manifest+json; charset=utf-8');
+        echo json_encode([
+            'name' => storeDisplayName(),
+            'short_name' => storeDisplayName(),
+            'start_url' => url('/'),
+            'display' => 'standalone',
+            'background_color' => '#ffffff',
+            'theme_color' => '#0a0a0a',
+            'icons' => $icons ? [
+                ['src' => asset($icons[192]), 'sizes' => '192x192', 'type' => 'image/png'],
+                ['src' => asset($icons[512]), 'sizes' => '512x512', 'type' => 'image/png'],
+            ] : [],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /** Lets admins install the admin panel as a home-screen app. */
+    public function adminManifest(): void
+    {
+        $icons = FaviconService::ensure(storeLogoPath());
+        header('Content-Type: application/manifest+json; charset=utf-8');
+        echo json_encode([
+            'name' => storeDisplayName() . ' Admin',
+            'short_name' => 'Admin',
+            'id' => url('/admin'),
+            'start_url' => url('/admin'),
+            'scope' => url('/admin'),
+            'display' => 'standalone',
+            'orientation' => 'portrait',
+            'background_color' => '#f5f7fb',
+            'theme_color' => '#1e3a8a',
+            'icons' => $icons ? [
+                ['src' => asset($icons[192]), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => asset($icons[512]), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+            ] : [],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    public function sitemap(): void
+    {
+        header('Content-Type: application/xml; charset=utf-8');
+        $products = Product::all();
+        $lastmod = fn(?string $date): ?string => $date && ($ts = strtotime($date)) ? date('Y-m-d', $ts) : null;
+        $newest = null;
+        foreach ($products as $product) {
+            $newest = max($newest, $lastmod($product['updatedAt'] ?? null));
+        }
+
+        // Each entry: [loc, lastmod, priority, images]
+        $entries = [[url('/'), $newest, '1.0', []]];
+        foreach (Category::all() as $category) {
+            $entries[] = [url('/category/' . rawurlencode($category['id'])), $newest, '0.8', []];
+        }
+        foreach ($products as $product) {
+            $entries[] = [
+                url('/product/' . rawurlencode($product['id'])),
+                $lastmod($product['updatedAt'] ?? null),
+                '0.6',
+                array_map(fn(string $img): array => [imageUrl($img), $product['name']], array_slice($product['images'], 0, 5)),
+            ];
+        }
+
+        $x = fn(string $v): string => htmlspecialchars($v, ENT_XML1 | ENT_QUOTES);
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
+        foreach ($entries as [$loc, $mod, $priority, $images]) {
+            echo "  <url>\n    <loc>" . $x($loc) . "</loc>\n";
+            if ($mod) {
+                echo "    <lastmod>{$mod}</lastmod>\n";
+            }
+            echo "    <priority>{$priority}</priority>\n";
+            foreach ($images as [$src, $title]) {
+                echo "    <image:image><image:loc>" . $x($src) . "</image:loc><image:title>" . $x($title) . "</image:title></image:image>\n";
+            }
+            echo "  </url>\n";
+        }
+        echo '</urlset>';
+    }
+
+    public function robots(): void
+    {
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "User-agent: *\nDisallow: /admin\nDisallow: /account\nDisallow: /setup\nDisallow: /api\n\nSitemap: " . url('/sitemap.xml') . "\n";
+    }
+
+    private function renderPage(array $seo, array $focus, ?array $categoryPage = null, int $categoryProductCount = 0): void
     {
         $products = Product::all();
         $categories = Category::all();
@@ -111,19 +225,42 @@ class StorefrontController
 
         View::render('storefront.layout-head', ['seo' => $seo]);
         View::render('storefront.header', ['categories' => $categories, 'occasions' => $occasions]);
-        View::render('storefront.offers-hero', [
-            'categories' => $categories,
-            'occasions' => $occasions,
-            'offers' => $offers,
-            'currency' => $currency,
-        ]);
-        View::render('storefront.product-section', ['products' => $products, 'currency' => $currency]);
+        if ($categoryPage) {
+            $categoryKey = $categoryPage['id'];
+            $categoryProducts = array_values(array_filter(
+                $products,
+                fn(array $p): bool => in_array($categoryKey, $p['categories'] ?? [], true) || $p['category'] === $categoryKey
+            ));
+            View::render('storefront.category-banner', ['category' => $categoryPage, 'productCount' => $categoryProductCount]);
+            View::render('storefront.product-section', [
+                'products' => $categoryProducts, 'currency' => $currency, 'heading' => $categoryPage['name'],
+            ]);
+        } else {
+            View::render('storefront.offers-hero', [
+                'categories' => $categories,
+                'occasions' => $occasions,
+                'offers' => $offers,
+                'currency' => $currency,
+            ]);
+            View::render('storefront.product-section', ['products' => $products, 'currency' => $currency]);
+        }
         View::render('storefront.footer', ['currency' => $currency, 'occasions' => $occasions]);
         View::render('storefront.size-guide-modal');
         View::render('storefront.layout-foot', [
             'products' => $products, 'categories' => $categories, 'occasions' => $occasions, 'lookbook' => $lookbook,
             'reviews' => $reviews, 'galleryItems' => $galleryItems, 'currency' => $currency, 'focus' => $focus,
+            'ad' => (empty($focus['product']) && empty($focus['category'])) ? $this->currentAd() : null,
         ]);
+    }
+
+    private function currentAd(): ?array
+    {
+        try {
+            $ad = Ad::current();
+            return $ad ? Ad::toPublic($ad) : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**

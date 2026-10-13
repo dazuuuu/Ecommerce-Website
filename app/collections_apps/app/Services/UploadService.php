@@ -63,6 +63,34 @@ class UploadService
         return 'assets/uploads/' . $subdir . '/' . $filename;
     }
 
+    /**
+     * Ad media: an image (via store()) or a short MP4/WebM video up to 25MB.
+     * @return array{0: string, 1: string} [relative path, 'image'|'video']
+     */
+    public static function storeMedia(array $file, string $subdir): array
+    {
+        if (!isset($file['error']) || is_array($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+            return [self::store($file, $subdir), 'image'];
+        }
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+        $videoTypes = ['video/mp4' => 'mp4', 'video/webm' => 'webm'];
+        if (!isset($videoTypes[$mime])) {
+            return [self::store($file, $subdir), 'image'];
+        }
+        if ($file['size'] > 25 * 1024 * 1024) {
+            throw new UploadException('Video is larger than 25MB.');
+        }
+        $dir = self::uploadsRoot() . '/' . $subdir;
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        $filename = bin2hex(random_bytes(10)) . '.' . $videoTypes[$mime];
+        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
+            throw new UploadException('Could not save uploaded file.');
+        }
+        return ['assets/uploads/' . $subdir . '/' . $filename, 'video'];
+    }
+
     /** Deletes a previously uploaded file, never touches external/seed image URLs. */
     public static function delete(?string $relativePath): void
     {

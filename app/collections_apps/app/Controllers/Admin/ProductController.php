@@ -38,7 +38,11 @@ class ProductController extends BaseAdminController
             'price' => $product['price'] ?? '',
             'original_price' => $product['original_price'] ?? '', 'category_key' => $product['category_key'] ?? '',
             'category_keys' => $this->selectedCategoryKeys($product),
+            'quantity' => (int) ($product['quantity'] ?? 10),
             'description' => $product['description'] ?? '',
+            'details' => implode("\n", json_decode($product['details'] ?? '[]', true) ?: []),
+            'fabric' => $product['fabric'] ?? '',
+            'fit' => $product['fit'] ?? '',
             'sizes' => implode("\n", json_decode($product['sizes'] ?? '[]', true) ?: []),
             'is_new' => !empty($product['is_new']) ? '1' : '',
             'new_arrival_until' => $this->datetimeLocalValue($product['new_arrival_until'] ?? null),
@@ -49,6 +53,71 @@ class ProductController extends BaseAdminController
         ];
         $images = json_decode($product['images'] ?? '[]', true) ?: [];
         $this->showForm($product, [], $form, $images);
+    }
+
+    public function recordSale(string $id): void
+    {
+        if (!csrfVerify(Request::post('csrf_token'))) {
+            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || Request::post('json')) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'CSRF token mismatch']);
+                exit;
+            }
+            flashError('CSRF token mismatch.');
+            redirect('/admin/products');
+        }
+
+        $qtySold = max(1, (int) Request::post('qty_sold', 1));
+        $productId = (int) $id;
+
+        $newQty = Product::recordSale($productId, $qtySold);
+        $inStock = $newQty > 0;
+
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || Request::post('json')) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'new_quantity' => $newQty,
+                'in_stock' => $inStock,
+                'message' => "Sale recorded! Quantity remaining: {$newQty}",
+            ]);
+            exit;
+        }
+
+        flashSuccess("Recorded sale of {$qtySold} item(s). New quantity: {$newQty}.");
+        redirect('/admin/products');
+    }
+
+    public function restock(string $id): void
+    {
+        if (!csrfVerify(Request::post('csrf_token'))) {
+            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || Request::post('json')) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'CSRF token mismatch']);
+                exit;
+            }
+            flashError('CSRF token mismatch.');
+            redirect('/admin/products');
+        }
+
+        $qtyAdded = max(1, (int) Request::post('qty_added', 1));
+        $productId = (int) $id;
+
+        $newQty = Product::restock($productId, $qtyAdded);
+
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || Request::post('json')) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'new_quantity' => $newQty,
+                'in_stock' => $newQty > 0,
+                'message' => "Restocked! Quantity now: {$newQty}",
+            ]);
+            exit;
+        }
+
+        flashSuccess("Restocked {$qtyAdded} item(s). New quantity: {$newQty}.");
+        redirect('/admin/products');
     }
 
     public function store(): void
@@ -90,7 +159,11 @@ class ProductController extends BaseAdminController
         return [
             'name' => '', 'price' => '', 'original_price' => '', 'category_key' => '',
             'category_keys' => [],
+            'quantity' => 10,
             'description' => '', 'sizes' => '',
+            'details' => '',
+            'fabric' => '',
+            'fit' => '',
             'base_price' => '',
             'has_offer' => '',
             'offer_type' => 'price',
@@ -109,14 +182,12 @@ class ProductController extends BaseAdminController
         }
 
         $form = [];
-        foreach (['name', 'description'] as $f) {
+        foreach (['name', 'description', 'details', 'fabric', 'fit'] as $f) {
             $form[$f] = trim((string) Request::post($f, ''));
         }
         $form['subtitle'] = '';
         $form['sub_category'] = '';
         $form['occasion'] = '';
-        $form['fabric'] = '';
-        $form['fit'] = '';
         $form['base_price'] = (float) Request::post('base_price', Request::post('price', 0));
         $form['has_offer'] = Request::post('has_offer') ? '1' : '';
         $form['offer_type'] = Request::post('offer_type', 'price') === 'percentage' ? 'percentage' : 'price';
@@ -125,13 +196,16 @@ class ProductController extends BaseAdminController
         $form['original_price'] = null;
         $form['category_keys'] = $this->validCategoryKeys(Request::post('category_keys', []));
         $form['category_key'] = $form['category_keys'][0] ?? '';
+        $form['quantity'] = max(0, (int) Request::post('quantity', 10));
         $form['sizes'] = trim((string) Request::post('sizes', ''));
-        $form['details'] = '';
         $form['is_new'] = Request::post('is_new') ? '1' : '';
         $form['new_arrival_until'] = trim((string) Request::post('new_arrival_until', ''));
         $form['is_best_seller'] = $product ? (int) ($product['is_best_seller'] ?? 0) : 0;
         $form['is_sale'] = $product ? (int) ($product['is_sale'] ?? 0) : 0;
-        $form['in_stock'] = $product ? (int) ($product['in_stock'] ?? 1) : 1;
+        $form['in_stock'] = $form['quantity'] > 0 ? 1 : 0;
+        $form['featured_in_lookbook'] = $product ? (int) ($product['featured_in_lookbook'] ?? 0) : 0;
+        $form['rating'] = $product ? (float) ($product['rating'] ?? 5.0) : 5.0;
+        $form['review_count'] = $product ? (int) ($product['review_count'] ?? 0) : 0;
         $form['featured_in_lookbook'] = $product ? (int) ($product['featured_in_lookbook'] ?? 0) : 0;
         $form['rating'] = $product ? (float) ($product['rating'] ?? 5.0) : 5.0;
         $form['review_count'] = $product ? (int) ($product['review_count'] ?? 0) : 0;
@@ -208,6 +282,7 @@ class ProductController extends BaseAdminController
         }
 
         $sizes = array_values(array_filter(array_map('trim', explode("\n", $form['sizes']))));
+        $details = array_values(array_filter(array_map('trim', explode("\n", $form['details']))));
         $colors = $this->parseColors(Request::post('color_names', []), Request::post('color_hexes', []));
         $form['colors'] = $colors;
 
@@ -219,8 +294,13 @@ class ProductController extends BaseAdminController
                 'original_price' => $form['original_price'],
                 'category_key' => $form['category_key'],
                 'category_keys' => json_encode($form['category_keys'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'quantity' => $form['quantity'],
+                'in_stock' => $form['quantity'] > 0 ? 1 : 0,
                 'sub_category' => null,
                 'description' => $form['description'] ?: null,
+                'details' => json_encode($details, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'fabric' => $form['fabric'] ?: null,
+                'fit' => $form['fit'] ?: null,
                 'sizes' => json_encode($sizes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'colors' => json_encode($colors, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'images' => json_encode($images, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),

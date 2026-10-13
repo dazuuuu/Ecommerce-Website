@@ -6,6 +6,7 @@ $galleryItems = $galleryItems ?? [];
          injected here by assets/js/app.js, mirroring conditional rendering —
          nothing renders until opened. -->
     <div id="modal-root"></div>
+    <div id="floating-whatsapp-root"></div>
   </div>
 
   <script id="pentagon-data" type="application/json">
@@ -19,8 +20,10 @@ $galleryItems = $galleryItems ?? [];
         'currency' => $currency,
         'currencies' => availableCurrencies(),
         'baseUrl' => rtrim(\App\Core\PathHandler::appUrl(), '/') ?: url('/'),
+        'whatsappNumber' => storeWhatsappNumber(),
         'focusProductCode' => $focus['product'] ?? null,
         'focusCategoryKey' => $focus['category'] ?? null,
+        'ad' => $ad ?? null,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>
   </script>
   <script src="<?= asset('assets/js/app.js') ?>?v=<?= (int) @filemtime(dirname(__DIR__, 2) . '/assets/js/app.js') ?>"></script>

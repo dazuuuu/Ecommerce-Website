@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Core\Database;
+use App\Core\PathHandler;
 use PDO;
 
 class MigrationService
@@ -34,7 +35,11 @@ class MigrationService
                 continue;
             }
             $migration = require $file;
-            $pdo->exec($migration['up']);
+            if (is_callable($migration['up'])) {
+                ($migration['up'])($pdo);
+            } else {
+                $pdo->exec($migration['up']);
+            }
             $pdo->prepare('INSERT INTO migrations (migration) VALUES (?)')->execute([$name]);
             $ran++;
         }
@@ -62,7 +67,7 @@ class MigrationService
 
     private static function migrationFiles(): array
     {
-        $files = glob(dirname(__DIR__, 2) . '/database/migrations/*.php') ?: [];
+        $files = glob(PathHandler::appRoot() . '/database/migrations/*.php') ?: [];
         sort($files);
         return $files;
     }

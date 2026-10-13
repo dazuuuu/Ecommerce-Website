@@ -13,7 +13,8 @@ class UpdateController extends BaseAdminController
         View::render('admin.updates.index', [
             'pageTitle' => 'Updates',
             'activeNav' => 'updates',
-            'pendingMigrations' => MigrationService::pending(),
+            'hasUpdate' => (bool) MigrationService::pending(),
+            'version' => APP_VERSION,
         ]);
     }
 
@@ -26,7 +27,7 @@ class UpdateController extends BaseAdminController
 
         try {
             $ran = MigrationService::runPending();
-            flashSuccess($ran > 0 ? "Updated successfully. Ran {$ran} migration(s)." : 'Everything is already up to date.');
+            flashSuccess($ran > 0 ? 'Updated to version ' . APP_VERSION . ' successfully.' : 'You are already on version ' . APP_VERSION . '.');
         } catch (\Throwable $e) {
             flashError('Update failed: ' . $e->getMessage());
         }

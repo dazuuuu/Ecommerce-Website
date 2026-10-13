@@ -7,7 +7,7 @@ namespace App\Core;
  * address in config/paths.php so local and hosted copies do not 404.
  *
  * Also recovers missing /assets/... requests: if Apache cannot find the file
- * at the requested URL, we look under public/ or public_html/ and serve it.
+ * at the requested URL, we look under the public folder and serve it.
  */
 class PathHandler
 {
@@ -24,6 +24,9 @@ class PathHandler
 
         self::$publicRoot = self::detectPublicRoot();
         $configured = self::configuredAppUrl();
+        if ($configured !== '' && self::isStaleLocalConfig($configured)) {
+            $configured = '';
+        }
         self::$appUrl = $configured !== '' ? $configured : self::detectAppUrl();
         self::$basePath = self::pathFromAppUrl(self::$appUrl);
         self::$ready = true;
@@ -48,6 +51,18 @@ class PathHandler
     {
         self::init();
         return self::$publicRoot;
+    }
+
+    /** Folder that holds app/, config/, database/, vendor/. */
+    public static function appRoot(): string
+    {
+        return dirname(__DIR__, 2);
+    }
+
+    /** Folder that holds the page templates (public/Views). */
+    public static function viewsPath(): string
+    {
+        return self::publicRoot() . '/Views';
     }
 
     public static function to(string $path = '/'): string
@@ -145,7 +160,7 @@ class PathHandler
     private static function configuredAppUrl(): string
     {
         $fromFile = '';
-        $file = dirname(__DIR__, 2) . '/config/paths.php';
+        $file = self::appRoot() . '/config/paths.php';
         if (is_file($file)) {
             $config = include $file;
             if (is_array($config)) {
@@ -153,9 +168,39 @@ class PathHandler
             }
         }
 
-        $fromEnv = (string) Env::get('APP_URL', '');
-        $raw = trim($fromFile !== '' ? $fromFile : $fromEnv);
+        $raw = trim($fromFile);
         return self::normalizeAppUrl($raw);
+    }
+
+    /**
+     * True when the configured APP_URL points at a local dev host (localhost,
+     * 127.0.0.1, .test, .local) but the current request clearly did not come
+     * in on that host — e.g. a leftover "localhost:8003" left in config/paths.php after
+     * deploying to a live domain. In that case we ignore it and auto-detect
+     * instead, so CSS/JS/images never point at an unreachable local address.
+     */
+    private static function isStaleLocalConfig(string $configuredUrl): bool
+    {
+        $configuredHost = strtolower((string) parse_url($configuredUrl, PHP_URL_HOST));
+        if ($configuredHost === '') {
+            return false;
+        }
+
+        $localHosts = ['localhost', '127.0.0.1', '::1'];
+        $isConfiguredLocal = in_array($configuredHost, $localHosts, true)
+            || preg_match('/\.(test|local|localhost)$/i', $configuredHost) === 1;
+        if (!$isConfiguredLocal) {
+            return false;
+        }
+
+        $requestHost = (string) ($_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? '');
+        $requestHost = strtolower(trim(explode(',', $requestHost)[0]));
+        $requestHost = preg_replace('/:\d+$/', '', $requestHost) ?? $requestHost;
+        if ($requestHost === '' || in_array($requestHost, $localHosts, true)) {
+            return false;
+        }
+
+        return $requestHost !== $configuredHost;
     }
 
     private static function detectAppUrl(): string
@@ -200,16 +245,21 @@ class PathHandler
         return rtrim($path, '/');
     }
 
+    /**
+     * The public folder is wherever the front controller (index.php) is running
+     * from — whatever the host calls it — so no folder names are hardcoded.
+     * CLI scripts fall back to the project's public/ folder.
+     */
     private static function detectPublicRoot(): string
     {
-        $root = dirname(__DIR__, 4);
-        foreach (['public', 'public_html'] as $dir) {
-            $candidate = $root . '/' . $dir;
-            if (is_dir($candidate . '/assets') || is_file($candidate . '/index.php')) {
-                return $candidate;
+        $script = $_SERVER['SCRIPT_FILENAME'] ?? '';
+        if ($script !== '' && PHP_SAPI !== 'cli') {
+            $dir = realpath(dirname($script));
+            if ($dir !== false && is_dir($dir . '/Views')) {
+                return str_replace('\\', '/', $dir);
             }
         }
-        return $root . '/public';
+        return dirname(__DIR__, 4) . '/public';
     }
 
     /** @return list<string> */
@@ -252,7 +302,7 @@ class PathHandler
         }
 
         $trimmed = ltrim($path, '/');
-        $trimmed = preg_replace('#^(?:public_html|public)/#i', '', $trimmed) ?? $trimmed;
+        $trimmed = preg_replace('#^public/#i', '', $trimmed) ?? $trimmed;
         if (strpos($trimmed, 'assets/') === 0) {
             return $trimmed;
         }

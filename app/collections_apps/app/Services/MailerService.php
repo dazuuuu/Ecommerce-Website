@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Core\Env;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
@@ -10,14 +9,14 @@ class MailerException extends \Exception {}
 
 /**
  * SMTP mailer (PHPMailer) for OTP login codes, password-reset codes, and
- * order confirmations. Reads credentials from .env — see .env.example.
+ * order confirmations. Edit the SMTP credentials in configured() below.
  */
 class MailerService
 {
     /**
      * A misconfigured/unreachable SMTP host must fail fast rather than hang
      * the request for PHPMailer's 300s default — matters most right after
-     * .env is first set up with placeholder credentials.
+     * the mail settings are first filled in with placeholder credentials.
      */
     private static function configured(): PHPMailer
     {
@@ -25,14 +24,14 @@ class MailerService
         $mail->isSMTP();
         $mail->Timeout = 10;
         $mail->SMTPKeepAlive = false;
-        $mail->Host = Env::get('MAIL_HOST');
+        $mail->Host = 'smtp.example.com';
         $mail->SMTPAuth = true;
-        $mail->Username = Env::get('MAIL_USERNAME');
-        $mail->Password = Env::get('MAIL_PASSWORD');
-        $encryption = Env::get('MAIL_ENCRYPTION', 'tls');
+        $mail->Username = 'you@example.com';
+        $mail->Password = 'changeme';
+        $encryption = 'tls';
         $mail->SMTPSecure = $encryption === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = (int) Env::get('MAIL_PORT', 587);
-        $mail->setFrom(Env::get('MAIL_FROM_ADDRESS', 'no-reply@pentagoncollections.com'), Env::get('MAIL_FROM_NAME', 'Pentagon Collections'));
+        $mail->Port = 587;
+        $mail->setFrom('concierge@pentagoncollections.com', 'Pentagon Collections');
         return $mail;
     }
 

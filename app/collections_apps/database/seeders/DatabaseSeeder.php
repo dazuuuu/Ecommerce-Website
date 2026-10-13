@@ -1,16 +1,14 @@
 <?php
 /**
  * One-time/idempotent seed: categories, products, and the first admin account
- * (from ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD in .env).
+ * (from ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD set below).
  * Run: php app/collections_apps/database/seeders/DatabaseSeeder.php
  */
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
-use App\Core\Env;
 use App\Core\Database;
 
-Env::load();
 $pdo = Database::connection();
 
 // --- Categories ---
@@ -79,8 +77,8 @@ foreach ($products as $p) {
 echo 'Seeded ' . count($products) . " products.\n";
 
 // --- Admin account ---
-$adminEmail = Env::get('ADMIN_SEED_EMAIL', 'admin@example.com');
-$adminPass = Env::get('ADMIN_SEED_PASSWORD', 'admin123');
+$adminEmail = 'dazuhubs@gmail.com';
+$adminPass = 'password123!';
 
 $exists = $pdo->prepare('SELECT id FROM admins WHERE email = ?');
 $exists->execute([$adminEmail]);

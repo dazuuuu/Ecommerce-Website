@@ -33,12 +33,18 @@ $actionUrl = $category ? url('/admin/categories/' . (int) $category['id']) : url
   </div>
 
   <div>
-    <label class="text-[11px] font-bold text-neutral-600 uppercase">Cover Image</label>
+    <div class="flex items-center gap-2">
+      <label class="text-[11px] font-bold text-neutral-600 uppercase">Featured Image <span class="text-neutral-400 font-normal normal-case">(optional)</span></label>
+      <button type="button" id="featured-help-toggle" aria-expanded="false" aria-controls="featured-help" class="w-5 h-5 rounded-full bg-neutral-200 hover:bg-neutral-300 text-neutral-700 text-[11px] font-bold leading-none flex items-center justify-center cursor-pointer" title="Why add a featured image?">?</button>
+    </div>
+    <div id="featured-help" class="hidden mt-2 bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs rounded-lg p-3 leading-relaxed">
+      Every category now has its own shareable page. The featured image is the banner at the top of that page and the picture people see when the link is shared on WhatsApp, Facebook or X, next to your logo, the category name and its tagline. It's optional, but categories without one look plain when shared.
+    </div>
     <?php if (!empty($category['image'])): ?>
       <img src="<?= e(imageUrl($category['image'])) ?>" alt="" class="w-40 h-28 object-cover rounded-lg border border-neutral-200 mt-2 mb-2" />
     <?php endif; ?>
-    <input type="file" name="image" accept="image/*" class="w-full mt-1 text-sm" />
-    <p class="text-[11px] text-neutral-400 mt-1">JPG, PNG, WEBP or GIF, up to 8MB. Leave empty to keep the current image.</p>
+    <input type="file" name="image" accept="image/*" class="w-full mt-2 text-sm" />
+    <p class="text-[11px] text-neutral-400 mt-1">JPG, PNG, WEBP or GIF, up to 8MB. A wide image (about 1200×630) works best. Leave empty to keep the current image.</p>
   </div>
 
   <div class="flex items-center gap-3 pt-3 border-t border-neutral-100">
@@ -48,5 +54,13 @@ $actionUrl = $category ? url('/admin/categories/' . (int) $category['id']) : url
     <a href="<?= url('/admin/categories') ?>" class="text-xs font-bold text-neutral-500 hover:text-neutral-800">Cancel</a>
   </div>
 </form>
+
+<script>
+document.getElementById('featured-help-toggle').addEventListener('click', function () {
+  var help = document.getElementById('featured-help');
+  var open = help.classList.toggle('hidden') === false;
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
 
 <?php require __DIR__ . '/../layout-footer.php'; ?>

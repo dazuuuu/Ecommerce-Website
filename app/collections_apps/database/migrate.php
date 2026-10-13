@@ -7,10 +7,8 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use App\Core\Env;
 use App\Core\Database;
 
-Env::load();
 $pdo = Database::connection();
 
 $fresh = in_array('--fresh', $argv, true);
@@ -45,7 +43,7 @@ foreach ($files as $file) {
     }
     $migration = require $file;
     echo "Migrating: {$name}\n";
-    $pdo->exec($migration['up']);
+    is_callable($migration['up']) ? ($migration['up'])($pdo) : $pdo->exec($migration['up']);
     $pdo->prepare('INSERT INTO migrations (migration) VALUES (?)')->execute([$name]);
     $ran++;
 }
